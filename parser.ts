@@ -27,8 +27,11 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
   return (cursor: Cursor, input: string) => {
     const head = input.at(0);
     if (head != null) {
-      return good({ result: head, cursor: cursor, remainder: input.slice(1) });
+      return {
+        ok: true,
+        value: { result: head, cursor: cursor, remainder: input.slice(1) },
+      };
     }
-    return bad(cursor);
+    return { ok: false, error: cursor };
   };
 }
