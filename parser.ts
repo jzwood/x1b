@@ -7,19 +7,20 @@ interface Cursor {
   col: number;
 }
 
-type ParseResult<T> = { result: T; cursor: Cursor; remainder: string };
+type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
 
+type ParseResult<T> = Result<ParseError, ParseOk<T>>;
 type Parser<T> = (
   cursor: Cursor,
   input: string,
-) => Result<ParseError, ParseResult<T>>;
+) => ParseResult<T>;
 
-function bad(error: Cursor) {
+function err<T>(error: Cursor): ParseResult<T> {
   return { ok: false, error };
 }
 
-function good<T>(value: T) {
+function ok<T>(value: ParseOk<T>): ParseResult<T> {
   return { ok: true, value };
 }
 
@@ -27,11 +28,8 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
   return (cursor: Cursor, input: string) => {
     const head = input.at(0);
     if (head != null) {
-      return {
-        ok: true,
-        value: { result: head, cursor: cursor, remainder: input.slice(1) },
-      };
+      return ok({ result: head, cursor: cursor, remainder: input.slice(1) });
     }
-    return { ok: false, error: cursor };
+    return err(cursor);
   };
 }
