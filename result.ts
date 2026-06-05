@@ -10,9 +10,18 @@ export function ok<E, T>(value: T): Result<E, T> {
   return { ok: true, value };
 }
 
+// IMPLEMENTS FUNCTOR
 export function fmap<E, A, B>(
   result: Result<E, A>,
   fn: (a: A) => B,
 ): Result<E, B> {
   return result.ok ? ok(fn(result.value)) : result;
+}
+
+// IMPLEMENTS MONAD
+export function bind<E, A, B>(
+  result: Result<E, A>,
+  fn: (a: A) => Result<E, B>,
+): Result<E, B> {
+  return result.ok ? fn(result.value) : result
 }

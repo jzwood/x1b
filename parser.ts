@@ -7,7 +7,6 @@ interface Cursor {
 
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
-
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
 type Parser<T> = (
   cursor: Cursor,
@@ -47,11 +46,11 @@ function pure<T>(result: T): Parser<T> {
 }
 
 function apply<A, B>(pab: Parser<(a: A) => B>, pa: Parser<A>): Parser<B> {
-  const ap = (ok: ParseOk<A>): ParseOk<B> => {
+  const ap = (ok: ParseOk<(a: A) => B>): ParseResult<B> => {
     const pb = fmap(pa, ok.result);
     return pb(ok.cursor, ok.remainder);
   };
-  return (cursor: Cursor, input: string) => Result.fmap(pab(cursor, input), ap);
+  return (cursor: Cursor, input: string) => Result.bind(pab(cursor, input), ap);
 }
 
 function seqRight() {
