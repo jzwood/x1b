@@ -59,13 +59,13 @@ function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
 // (<*) :: f a -> f b -> f a
 function seqLeft<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
   //return liftA2((a) => (_) => a, pa, pb);
-  return bind(pb, (_) => pa)
+  return bind(pb, (_) => pa);
 }
 
 // (*>) :: f a -> f b -> f b
 function seqRight<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
   //return seqLeft(pb, pa);
-  return bind(pa, (_) => pb)
+  return bind(pa, (_) => pb);
 }
 
 // liftA2 :: (a -> b -> c) -> f a -> f b -> f c
@@ -87,10 +87,13 @@ function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
 // IMPLEMENTS ALTERATIVE
 // empty :: Parser<T>
 function empty<T>(cursor: Cursor, _: string): Result.Result<ParseError, T> {
-  return Result.err(cursor)
+  return Result.err(cursor);
 }
 
 // (<|>) :: f a -> f a -> f a
 function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
-  return (cursor: Cursor, input: string) => Result.alt(pa1(cursor, input), pa2(cursor, input))
+  return (cursor: Cursor, input: string) => {
+    const result = pa1(cursor, input);
+    return result.ok ? result : pa2(cursor, input);
+  };
 }

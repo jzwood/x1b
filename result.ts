@@ -23,10 +23,10 @@ export function bind<E, A, B>(
   result: Result<E, A>,
   fn: (a: A) => Result<E, B>,
 ): Result<E, B> {
-  return result.ok ? fn(result.value) : result
+  return result.ok ? fn(result.value) : result;
 }
 
 // IMPLEMENTS ALTERNATIVE
 export function alt<E, T>(r1: Result<E, T>, r2: Result<E, T>): Result<E, T> {
-  return r1.ok ? r1 : r2
+  return r1.ok ? r1 : r2;
 }
