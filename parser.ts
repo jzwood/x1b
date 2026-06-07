@@ -29,6 +29,7 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
 }
 
 // IMPLEMENTS FUNCTOR
+// (<$>) :: f a -> (a -> b) -> f b
 function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
   return (cursor: Cursor, input: string) =>
     Result.fmap(parse(cursor, input), (ok: ParseOk<A>): ParseOk<B> => ({
@@ -46,7 +47,7 @@ function pure<T>(result: T): Parser<T> {
 }
 
 // (<*>) :: f (a -> b) -> f a -> f b
-function apply<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
+function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
   return (cursor: Cursor, input: string) =>
     Result.bind(
       pab(cursor, input),
@@ -57,13 +58,14 @@ function apply<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
 
 // (<*) :: f a -> f b -> f a
 function seqLeft<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
-  return liftA2((a) => (_) => a, pa, pb);
+  //return liftA2((a) => (_) => a, pa, pb);
+  return bind(pb, (_) => pa)
 }
 
 // (*>) :: f a -> f b -> f b
-//a1 *> a2 = (id <$ a1) <*> a2
 function seqRight<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
-  return seqLeft(pb, pa);
+  //return seqLeft(pb, pa);
+  return bind(pa, (_) => pb)
 }
 
 // liftA2 :: (a -> b -> c) -> f a -> f b -> f c
@@ -72,7 +74,7 @@ function liftA2<A, B, C>(
   pa: Parser<A>,
   pb: Parser<B>,
 ): Parser<C> {
-  return apply(pb, fmap(pa, abc));
+  return ap(pb, fmap(pa, abc));
 }
 
 // IMPLEMENTS MONAD
@@ -80,4 +82,15 @@ function liftA2<A, B, C>(
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
   return (cursor: Cursor, input: string) =>
     Result.bind(pa(cursor, input), (ok) => apb(ok.result)(cursor, input));
+}
+
+// IMPLEMENTS ALTERATIVE
+// empty :: Parser<T>
+function empty<T>(cursor: Cursor, _: string): Result.Result<ParseError, T> {
+  return Result.err(cursor)
+}
+
+// (<|>) :: f a -> f a -> f a
+function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
+  return (cursor: Cursor, input: string) => Result.alt(pa1(cursor, input), pa2(cursor, input))
 }
