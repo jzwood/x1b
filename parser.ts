@@ -30,33 +30,54 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
 
 // IMPLEMENTS FUNCTOR
 function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
-  const transform = (ok: ParseOk<A>): ParseOk<B> => ({
-    result: fn(ok.result),
-    cursor: ok.cursor,
-    remainder: ok.remainder,
-  });
   return (cursor: Cursor, input: string) =>
-    Result.fmap(parse(cursor, input), transform);
+    Result.fmap(parse(cursor, input), (ok: ParseOk<A>): ParseOk<B> => ({
+      result: fn(ok.result),
+      cursor: ok.cursor,
+      remainder: ok.remainder,
+    }));
 }
 
 // IMPLEMENTS APPLICATIVE FUNCTOR
+// pure :: a -> f a
 function pure<T>(result: T): Parser<T> {
   return (cursor: Cursor, input: string) =>
     Result.ok({ result, cursor, remainder: input });
 }
 
-function apply<A, B>(pab: Parser<(a: A) => B>, pa: Parser<A>): Parser<B> {
-  const ap = (ok: ParseOk<(a: A) => B>): ParseResult<B> => {
-    const pb = fmap(pa, ok.result);
-    return pb(ok.cursor, ok.remainder);
-  };
-  return (cursor: Cursor, input: string) => Result.bind(pab(cursor, input), ap);
+// (<*>) :: f (a -> b) -> f a -> f b
+function apply<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
+  return (cursor: Cursor, input: string) =>
+    Result.bind(
+      pab(cursor, input),
+      (ok: ParseOk<(a: A) => B>): ParseResult<B> =>
+        fmap(pa, ok.result)(ok.cursor, ok.remainder),
+    );
 }
 
-function seqRight() {
+// (<*) :: f a -> f b -> f a
+function seqLeft<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
+  return liftA2((a) => (_) => a, pa, pb);
 }
 
-function seqLeft() {
+// (*>) :: f a -> f b -> f b
+//a1 *> a2 = (id <$ a1) <*> a2
+function seqRight<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
+  return seqLeft(pb, pa);
 }
 
-function liftA2() {}
+// liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+function liftA2<A, B, C>(
+  abc: (a: A) => (b: B) => C,
+  pa: Parser<A>,
+  pb: Parser<B>,
+): Parser<C> {
+  return apply(pb, fmap(pa, abc));
+}
+
+// IMPLEMENTS MONAD
+// (>>=) :: m a -> (a -> m b) -> m b
+function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
+  return (cursor: Cursor, input: string) =>
+    Result.bind(pa(cursor, input), (ok) => apb(ok.result)(cursor, input));
+}
