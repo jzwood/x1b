@@ -97,3 +97,12 @@ function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
     return result.ok ? result : pa2(cursor, input);
   };
 }
+
+// UTILS
+function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
+  return alt(oneOrMore(p), pure([]));
+}
+
+function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
+  return liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p));
+}
