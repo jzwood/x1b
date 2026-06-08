@@ -100,11 +100,17 @@ function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
 
 // CORE UTILS
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return alt(oneOrMore(p), pure([]));
+  return (c: Cursor, i: string) => {
+    const parser = alt(oneOrMore(p), pure([]))
+    return parser(c, i);
+  }
 }
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p));
+  return (c: Cursor, i: string) => {
+    const parser = liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p))
+    return parser(c, i);
+  }
 }
 
 function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
