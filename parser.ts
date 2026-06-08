@@ -98,7 +98,7 @@ function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
   };
 }
 
-// UTILS
+// CORE UTILS
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
   return alt(oneOrMore(p), pure([]));
 }
@@ -106,3 +106,24 @@ function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
   return liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p));
 }
+
+function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
+  return alt(fmap(p, Array.of.bind(Array)), pure([]));
+}
+
+// EXTRA UTILS
+function char(grapheme: string): Parser<string> {
+  return satisfy((char) => char === grapheme);
+}
+
+//integer :: Parser Integer
+//integer = read <$> oneOrMore (satisfy isDigit)
+
+function isDigit(str: string): boolean {
+  return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(str);
+}
+
+//const integer: Parser<number> = fmap(
+  //oneOrMore(satisfy(isDigit)),
+  //(xs) => parseInt(xs.join(""), 10),
+//);
