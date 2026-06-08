@@ -5,6 +5,8 @@ interface Cursor {
   col: number;
 }
 
+const CUR_INIT = Object.freeze({ line: 0, col: 0 });
+
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
@@ -56,18 +58,6 @@ function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
     );
 }
 
-// (<*) :: f a -> f b -> f a
-function seqLeft<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
-  //return liftA2((a) => (_) => a, pa, pb);
-  return bind(pb, (_) => pa);
-}
-
-// (*>) :: f a -> f b -> f b
-function seqRight<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
-  //return seqLeft(pb, pa);
-  return bind(pa, (_) => pb);
-}
-
 // liftA2 :: (a -> b -> c) -> f a -> f b -> f c
 function liftA2<A, B, C>(
   abc: (a: A) => (b: B) => C,
@@ -82,6 +72,16 @@ function liftA2<A, B, C>(
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
   return (cursor: Cursor, input: string) =>
     Result.bind(pa(cursor, input), (ok) => apb(ok.result)(cursor, input));
+}
+
+// (<*) :: f a -> f b -> f a
+function left<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
+  return liftA2((a) => (_) => a, pa, pb);
+}
+
+// (>>) :: f a -> f b -> f b
+function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
+  return bind(pa, (_) => pb);
 }
 
 // IMPLEMENTS ALTERATIVE
@@ -101,16 +101,16 @@ function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
 // CORE UTILS
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
   return (c: Cursor, i: string) => {
-    const parser = alt(oneOrMore(p), pure([]))
+    const parser = alt(oneOrMore(p), pure([]));
     return parser(c, i);
-  }
+  };
 }
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
   return (c: Cursor, i: string) => {
-    const parser = liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p))
+    const parser = liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p));
     return parser(c, i);
-  }
+  };
 }
 
 function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
@@ -122,14 +122,20 @@ function char(grapheme: string): Parser<string> {
   return satisfy((char) => char === grapheme);
 }
 
-//integer :: Parser Integer
-//integer = read <$> oneOrMore (satisfy isDigit)
-
 function isDigit(str: string): boolean {
   return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(str);
 }
 
-//const integer: Parser<number> = fmap(
-  //oneOrMore(satisfy(isDigit)),
-  //(xs) => parseInt(xs.join(""), 10),
-//);
+const integer: Parser<number> = fmap(
+  oneOrMore(satisfy(isDigit)),
+  (xs) => parseInt(xs.join(""), 10),
+);
+
+function wrap<T>(l: string, r: string): (p: Parser<T>) => Parser<T> {
+  // DOESN"T WORK TODO
+  return (p: Parser<T>) => right(char(l), left(p, char(r)))
+}
+
+var bracket = wrap("[", "]");
+var bint = bracket(integer);
+console.log(bint(CUR_INIT, "[123]"))

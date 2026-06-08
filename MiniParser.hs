@@ -138,7 +138,7 @@ stream :: Parser String
 stream = liftA2 (:) (char '&') camel
 
 wrap :: Char -> Char -> Parser a -> Parser a
-wrap l r p = char l *> p <* char r
+wrap l r p = (*>) (char l) ((<* ) p (char r))
 
 paren :: Parser a -> Parser a
 paren = wrap '(' ')'
