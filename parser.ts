@@ -10,6 +10,7 @@ const CUR_INIT = Object.freeze({ line: 0, col: 0 });
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
+// TODO switch order or arguments and make cursor have default value
 type Parser<T> = (
   cursor: Cursor,
   input: string,
@@ -130,7 +131,7 @@ function isDigit(grapheme: string): boolean {
 }
 
 function isWhitespace(grapheme: string): boolean {
-  return [' ', '\t', '\n'].includes(grapheme)
+  return [" ", "\t", "\n"].includes(grapheme);
 }
 
 const integer: Parser<number> = fmap(
@@ -138,6 +139,25 @@ const integer: Parser<number> = fmap(
   (xs) => parseInt(xs.join(""), 10),
 );
 const whitespace = zeroOrMore(satisfy(isWhitespace));
+
+function isAlpha(grapheme: string): boolean {
+  return (/[a-zA-Z]/).test(grapheme);
+}
+const alpha = satisfy(isAlpha);
+
+function word(str: string): Parser<string> {
+  return fmap(traverse(char, Array.from(str)), (chrs) => chrs.join(''));
+}
+
+function traverse<A>(apb: (a: A) => Parser<A>, as: A[]): Parser<A[]> {
+  return (c: Cursor, i: string) =>
+    as.reduceRight(
+      (acc, a) => liftA2((x: A) => (xs: A[]) => [x, ...xs], apb(a), acc),
+      pure<A[]>([]),
+    )(c, i);
+}
+
+console.log(word("CAT")(CUR_INIT, "CATMAN"));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
@@ -167,12 +187,12 @@ const parseIntArr: Parser<number[]> = wrap(
   "]",
 );
 
-console.log(
-  parseIntArr(
-    CUR_INIT,
-    "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
-  ),
-);
+//console.log(
+//parseIntArr(
+//CUR_INIT,
+//"[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
+//),
+//);
 
 /*
 {
@@ -184,3 +204,13 @@ console.log(
   }
 }
 */
+
+//const spaceOrEqual = alt(char(' '), char("="));
+//// char? str? string? idk types
+//const paramName: Parser<char> = oneOrMore(char("-"),oneOrMore(satisfy(isAlphabet));
+
+//const parseArg: Parser<idkman> = somethingHere(paramName, trim(integer));
+
+//var input = "--somename 17"
+
+//const parseArg: Parser<number> = right(word('--flag-name'), right(spaceOrEqual, integer))
