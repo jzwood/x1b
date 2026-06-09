@@ -146,13 +146,13 @@ function isAlpha(grapheme: string): boolean {
 const alpha = satisfy(isAlpha);
 
 function word(str: string): Parser<string> {
-  return fmap(traverse(char, Array.from(str)), (chrs) => chrs.join(''));
+  return fmap(traverse(char, Array.from(str)), (cs) => cs.join(""));
 }
 
-function traverse<A>(apb: (a: A) => Parser<A>, as: A[]): Parser<A[]> {
+function traverse<A>(apb: (chr: A) => Parser<A>, chrs: A[]): Parser<A[]> {
   return (c: Cursor, i: string) =>
-    as.reduceRight(
-      (acc, a) => liftA2((x: A) => (xs: A[]) => [x, ...xs], apb(a), acc),
+    chrs.reduceRight(
+      (acc, chr) => liftA2((x: A) => (xs: A[]) => [x, ...xs], apb(chr), acc),
       pure<A[]>([]),
     )(c, i);
 }
