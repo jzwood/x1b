@@ -125,34 +125,40 @@ function char(grapheme: string): Parser<string> {
   return satisfy((char) => char === grapheme);
 }
 
-function isDigit(str: string): boolean {
-  return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(str);
+function isDigit(grapheme: string): boolean {
+  return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(grapheme);
+}
+
+function isWhitespace(grapheme: string): boolean {
+  return [' ', '\t', '\n'].includes(grapheme)
 }
 
 const integer: Parser<number> = fmap(
   oneOrMore(satisfy(isDigit)),
   (xs) => parseInt(xs.join(""), 10),
 );
-const whitespace = zeroOrMore(char(" "));
-function trim<T>(p: Parser<T>): Parser<T> {
-  return right(whitespace, left(p, whitespace));
-}
+const whitespace = zeroOrMore(satisfy(isWhitespace));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
 }
 
+function trim<T>(p: Parser<T>): Parser<T> {
+  return right(whitespace, left(p, whitespace));
+}
+
+function trimEnd<T>(p: Parser<T>): Parser<T> {
+  return left(p, whitespace);
+}
+
 const parseIntArr: Parser<number[]> = wrap(
   "[",
-  trim(
-    zeroOrMore(
+  zeroOrMore(
+    trim(
       alt(
         left(
-          left(
-            left(integer, whitespace),
-            char(","),
-          ),
-          whitespace,
+          trimEnd(integer),
+          char(","),
         ),
         integer,
       ),
