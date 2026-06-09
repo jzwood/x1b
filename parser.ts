@@ -149,13 +149,31 @@ function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
 //var bint = bracket(integer);
 //console.log(bint(CUR_INIT, "[123]HELLO"))
 
+const whitespace = zeroOrMore(char(" "));
+
 const parseIntArr: Parser<number[]> = wrap(
   "[",
-  zeroOrMore(
-    left(
-      integer,
-      zeroOrOne(char(",")),
+  right(
+    whitespace,
+    zeroOrMore(
+      alt(
+        left(
+          left(
+            left(integer, whitespace),
+            char(","),
+          ),
+          whitespace,
+        ),
+        left(integer, whitespace),
+      ),
     ),
   ),
   "]",
+);
+
+console.log(
+  parseIntArr(
+    CUR_INIT,
+    "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
+  ),
 );
