@@ -133,28 +133,18 @@ const integer: Parser<number> = fmap(
   oneOrMore(satisfy(isDigit)),
   (xs) => parseInt(xs.join(""), 10),
 );
-
-//function wrap<T>(l: string, r: string): (p: Parser<T>) => Parser<T> {
-//return (p: Parser<T>) => right(char(l), left(p, char(r)));
-//}
-
-//function bracket<T>(): (p: Parser<T>) => Parser<T> {
-//return wrap("[", "]");
-//}
+const whitespace = zeroOrMore(char(" "));
+function trim<T>(p: Parser<T>): Parser<T> {
+  return right(whitespace, left(p, whitespace));
+}
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
 }
 
-//var bint = bracket(integer);
-//console.log(bint(CUR_INIT, "[123]HELLO"))
-
-const whitespace = zeroOrMore(char(" "));
-
 const parseIntArr: Parser<number[]> = wrap(
   "[",
-  right(
-    whitespace,
+  trim(
     zeroOrMore(
       alt(
         left(
@@ -164,7 +154,7 @@ const parseIntArr: Parser<number[]> = wrap(
           ),
           whitespace,
         ),
-        left(integer, whitespace),
+        integer,
       ),
     ),
   ),
@@ -177,3 +167,14 @@ console.log(
     "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
   ),
 );
+
+/*
+{
+  ok: true,
+  value: {
+    result: [ 1, 7, 3, 45, 231, 543, 1 ],
+    cursor: { line: 0, col: 41 },
+    remainder: " HELLO THERE"
+  }
+}
+*/
