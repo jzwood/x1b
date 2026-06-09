@@ -71,7 +71,10 @@ function liftA2<A, B, C>(
 // (>>=) :: m a -> (a -> m b) -> m b
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
   return (cursor: Cursor, input: string) =>
-    Result.bind(pa(cursor, input), (ok) => apb(ok.result)(cursor, input));
+    Result.bind(
+      pa(cursor, input),
+      (ok) => apb(ok.result)(ok.cursor, ok.remainder),
+    );
 }
 
 // (<*) :: f a -> f b -> f a
@@ -131,11 +134,28 @@ const integer: Parser<number> = fmap(
   (xs) => parseInt(xs.join(""), 10),
 );
 
-function wrap<T>(l: string, r: string): (p: Parser<T>) => Parser<T> {
-  // DOESN"T WORK TODO
-  return (p: Parser<T>) => right(char(l), left(p, char(r)))
+//function wrap<T>(l: string, r: string): (p: Parser<T>) => Parser<T> {
+//return (p: Parser<T>) => right(char(l), left(p, char(r)));
+//}
+
+//function bracket<T>(): (p: Parser<T>) => Parser<T> {
+//return wrap("[", "]");
+//}
+
+function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
+  return right(char(l), left(p, char(r)));
 }
 
-var bracket = wrap("[", "]");
-var bint = bracket(integer);
-console.log(bint(CUR_INIT, "[123]"))
+//var bint = bracket(integer);
+//console.log(bint(CUR_INIT, "[123]HELLO"))
+
+const parseIntArr: Parser<number[]> = wrap(
+  "[",
+  zeroOrMore(
+    left(
+      integer,
+      zeroOrOne(char(",")),
+    ),
+  ),
+  "]",
+);
