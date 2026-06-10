@@ -149,7 +149,7 @@ function word(str: string): Parser<string> {
   return fmap(traverse(char, Array.from(str)), (cs) => cs.join(""));
 }
 
-function traverse<A>(apb: (chr: A) => Parser<A>, chrs: A[]): Parser<A[]> {
+function traverse<A, B>(apb: (chr: B) => Parser<A>, chrs: B[]): Parser<A[]> {
   return (c: Cursor, i: string) =>
     chrs.reduceRight(
       (acc, chr) => liftA2((x: A) => (xs: A[]) => [x, ...xs], apb(chr), acc),
@@ -157,7 +157,11 @@ function traverse<A>(apb: (chr: A) => Parser<A>, chrs: A[]): Parser<A[]> {
     )(c, i);
 }
 
-console.log(word("CAT")(CUR_INIT, "CATMAN"));
+function sequence<T>(ts: Parser<T>[]): Parser<T[]> {
+  return traverse((x) => x, ts);
+}
+
+//console.log(word("CAT")(CUR_INIT, "CATMAN"));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
@@ -205,7 +209,6 @@ const parseIntArr: Parser<number[]> = wrap(
 }
 */
 
-//const spaceOrEqual = alt(char(' '), char("="));
 //// char? str? string? idk types
 //const paramName: Parser<char> = oneOrMore(char("-"),oneOrMore(satisfy(isAlphabet));
 
@@ -213,4 +216,39 @@ const parseIntArr: Parser<number[]> = wrap(
 
 //var input = "--somename 17"
 
-//const parseArg: Parser<number> = right(word('--flag-name'), right(spaceOrEqual, integer))
+interface TaggedInt {
+  tag: string;
+  value: number;
+}
+
+const spaceOrEqual = alt(char(" "), char("="));
+function taggedInteger(tag: string): (val: number) => TaggedInt {
+  return (value) => ({ tag, value });
+}
+function parseArg(flag: string): Parser<TaggedInt> {
+  return trimEnd(right(
+    word('--' + flag),
+    right(spaceOrEqual, fmap(integer, taggedInteger(flag))),
+  ));
+}
+
+const parseArgs = zeroOrMore(
+  alt(parseArg("somename"), alt(parseArg("hello"), parseArg("my-flag"))),
+);
+
+const input = "--hello=23 --hello=99 --my-flag 9 --somename 9000";
+
+console.log(parseArgs(CUR_INIT, input));
+
+//{
+  //ok: true,
+  //value: {
+    //result: [
+      //{ tag: "hello", value: 23 },
+      //{ tag: "hello", value: 99 },
+      //{ tag: "my-flag", value: 9 }
+    //],
+    //cursor: { line: 0, col: 34 },
+    //remainder: "somename 9000"
+  //}
+//}
