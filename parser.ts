@@ -221,7 +221,8 @@ interface TaggedInt {
   value: number;
 }
 
-const spaceOrEqual = alt(char(" "), char("="));
+const white = fmap(oneOrMore(satisfy(isWhitespace)), (cs) => cs.join(''))
+const spaceOrEqual = alt(white, char("="));
 function taggedInteger(tag: string): (val: number) => TaggedInt {
   return (value) => ({ tag, value });
 }
@@ -236,7 +237,7 @@ const parseArgs = zeroOrMore(
   alt(parseArg("somename"), alt(parseArg("hello"), parseArg("my-flag"))),
 );
 
-const input = "--hello=23 --hello=99 --my-flag 9 --somename 9000";
+const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
 
 console.log(parseArgs(CUR_INIT, input));
 
