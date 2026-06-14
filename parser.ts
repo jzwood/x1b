@@ -5,19 +5,19 @@ interface Cursor {
   col: number;
 }
 
-const CUR_INIT = Object.freeze({ line: 0, col: 0 });
+const CURSOR = Object.freeze({ line: 0, col: 0 });
 
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
 // TODO switch order or arguments and make cursor have default value
 type Parser<T> = (
-  cursor: Cursor,
   input: string,
+  cursor: Cursor,
 ) => ParseResult<T>;
 
 function satisfy(p: (a: string) => boolean): Parser<string> {
-  return (c: Cursor, input: string) => {
+  return (input: string, c: Cursor) => {
     const result = input.at(0);
     if (result != null && p(result)) {
       const remainder = input.slice(1);
@@ -34,8 +34,8 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
 // IMPLEMENTS FUNCTOR
 // (<$>) :: f a -> (a -> b) -> f b
 function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
-  return (cursor: Cursor, input: string) =>
-    Result.fmap(parse(cursor, input), (ok: ParseOk<A>): ParseOk<B> => ({
+  return (input: string, cursor: Cursor) =>
+    Result.fmap(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
       result: fn(ok.result),
       cursor: ok.cursor,
       remainder: ok.remainder,
@@ -45,17 +45,17 @@ function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
 // IMPLEMENTS APPLICATIVE FUNCTOR
 // pure :: a -> f a
 function pure<T>(result: T): Parser<T> {
-  return (cursor: Cursor, input: string) =>
+  return (input: string, cursor: Cursor) =>
     Result.ok({ result, cursor, remainder: input });
 }
 
 // (<*>) :: f (a -> b) -> f a -> f b
 function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
-  return (cursor: Cursor, input: string) =>
+  return (input: string, cursor: Cursor) =>
     Result.bind(
-      pab(cursor, input),
+      pab(input, cursor),
       (ok: ParseOk<(a: A) => B>): ParseResult<B> =>
-        fmap(pa, ok.result)(ok.cursor, ok.remainder),
+        fmap(pa, ok.result)(ok.remainder, ok.cursor),
     );
 }
 
@@ -71,10 +71,10 @@ function liftA2<A, B, C>(
 // IMPLEMENTS MONAD
 // (>>=) :: m a -> (a -> m b) -> m b
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
-  return (cursor: Cursor, input: string) =>
+  return (input: string, cursor: Cursor) =>
     Result.bind(
-      pa(cursor, input),
-      (ok) => apb(ok.result)(ok.cursor, ok.remainder),
+      pa(input, cursor),
+      (ok) => apb(ok.result)(ok.remainder, ok.cursor),
     );
 }
 
@@ -90,30 +90,30 @@ function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
 
 // IMPLEMENTS ALTERATIVE
 // empty :: Parser<T>
-function empty<T>(cursor: Cursor, _: string): Result.Result<ParseError, T> {
+function empty<T>(_: string, cursor: Cursor): Result.Result<ParseError, T> {
   return Result.err(cursor);
 }
 
 // (<|>) :: f a -> f a -> f a
 function alt<A>(pa1: Parser<A>, pa2: Parser<A>): Parser<A> {
-  return (cursor: Cursor, input: string) => {
-    const result = pa1(cursor, input);
-    return result.ok ? result : pa2(cursor, input);
+  return (input: string, cursor: Cursor) => {
+    const result = pa1(input, cursor);
+    return result.ok ? result : pa2(input, cursor);
   };
 }
 
 // CORE UTILS
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (c: Cursor, i: string) => {
+  return (i: string, c: Cursor) => {
     const parser = alt(oneOrMore(p), pure([]));
-    return parser(c, i);
+    return parser(i, c);
   };
 }
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (c: Cursor, i: string) => {
+  return (i: string, c: Cursor) => {
     const parser = liftA2((x: T) => (xs: T[]) => [x, ...xs], p, zeroOrMore(p));
-    return parser(c, i);
+    return parser(i, c);
   };
 }
 
@@ -150,18 +150,18 @@ function word(str: string): Parser<string> {
 }
 
 function traverse<A, B>(apb: (chr: B) => Parser<A>, chrs: B[]): Parser<A[]> {
-  return (c: Cursor, i: string) =>
+  return (i: string, c: Cursor) =>
     chrs.reduceRight(
       (acc, chr) => liftA2((x: A) => (xs: A[]) => [x, ...xs], apb(chr), acc),
       pure<A[]>([]),
-    )(c, i);
+    )(i, c);
 }
 
 function sequence<T>(ts: Parser<T>[]): Parser<T[]> {
   return traverse((x) => x, ts);
 }
 
-//console.log(word("CAT")(CUR_INIT, "CATMAN"));
+//console.log(word("CAT")("CATMAN", CURSOR));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
@@ -193,7 +193,7 @@ const parseIntArr: Parser<number[]> = wrap(
 
 //console.log(
 //parseIntArr(
-//CUR_INIT,
+//CURSOR,
 //"[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
 //),
 //);
@@ -221,35 +221,43 @@ interface TaggedInt {
   value: number;
 }
 
-const white = fmap(oneOrMore(satisfy(isWhitespace)), (cs) => cs.join(''))
+const white = fmap(oneOrMore(satisfy(isWhitespace)), (cs) => cs.join(""));
 const spaceOrEqual = alt(white, char("="));
+
 function taggedInteger(tag: string): (val: number) => TaggedInt {
   return (value) => ({ tag, value });
 }
+
 function parseArg(flag: string): Parser<TaggedInt> {
   return trimEnd(right(
-    word('--' + flag),
+    word("--" + flag),
     right(spaceOrEqual, fmap(integer, taggedInteger(flag))),
   ));
 }
 
 const parseArgs = zeroOrMore(
-  alt(parseArg("somename"), alt(parseArg("hello"), parseArg("my-flag"))),
+  alt(
+    parseArg("somename"),
+    alt(
+      parseArg("hello"),
+      parseArg("my-flag")
+    )
+  ),
 );
 
 const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
 
-console.log(parseArgs(CUR_INIT, input));
+console.log(parseArgs(input, CURSOR));
 
 //{
-  //ok: true,
-  //value: {
-    //result: [
-      //{ tag: "hello", value: 23 },
-      //{ tag: "hello", value: 99 },
-      //{ tag: "my-flag", value: 9 }
-    //],
-    //cursor: { line: 0, col: 34 },
-    //remainder: "somename 9000"
-  //}
+//ok: true,
+//value: {
+//result: [
+//{ tag: "hello", value: 23 },
+//{ tag: "hello", value: 99 },
+//{ tag: "my-flag", value: 9 }
+//],
+//cursor: { line: 0, col: 34 },
+//remainder: "somename 9000"
+//}
 //}
