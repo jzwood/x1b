@@ -9,6 +9,7 @@ const CURSOR = Object.freeze({ line: 0, col: 0 });
 
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
+type Grapheme = string
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
 // TODO switch order or arguments and make cursor have default value
 type Parser<T> = (
@@ -16,7 +17,7 @@ type Parser<T> = (
   cursor: Cursor,
 ) => ParseResult<T>;
 
-function satisfy(p: (a: string) => boolean): Parser<string> {
+function satisfy(p: (a: Grapheme) => boolean): Parser<Grapheme> {
   return (input: string, c: Cursor) => {
     const result = input.at(0);
     if (result != null && p(result)) {
@@ -33,9 +34,9 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
 
 // IMPLEMENTS FUNCTOR
 // (<$>) :: f a -> (a -> b) -> f b
-function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
+function map<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
   return (input: string, cursor: Cursor) =>
-    Result.fmap(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
+    Result.map(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
       result: fn(ok.result),
       cursor: ok.cursor,
       remainder: ok.remainder,
@@ -49,24 +50,13 @@ function pure<T>(result: T): Parser<T> {
     Result.ok({ result, cursor, remainder: input });
 }
 
-// (<*>) :: f (a -> b) -> f a -> f b
-function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
-  return (input: string, cursor: Cursor) =>
-    Result.bind(
-      pab(input, cursor),
-      (ok: ParseOk<(a: A) => B>): ParseResult<B> =>
-        fmap(pa, ok.result)(ok.remainder, ok.cursor),
-    );
-}
-
-// liftA2 :: (a -> b -> c) -> f a -> f b -> f c
-function liftA2<A, B, C>(
-  abc: (a: A, b: B) => C,
+// map2 :: (a -> b -> c) -> f a -> f b -> f c
+function map2<A, B, C>(
   pa: Parser<A>,
   pb: Parser<B>,
+  abc: (a: A, b: B) => C
 ): Parser<C> {
   return bind(pa, (a) => bind(pb, (b) => pure(abc(a, b))));
-  //return bind(pa, (a) => fmap(pb, (b) => abc(a, b)));
 }
 
 // IMPLEMENTS MONAD
@@ -81,7 +71,7 @@ function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
 
 // (<*) :: f a -> f b -> f a
 function left<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
-  return liftA2((a, _) => a, pa, pb);
+  return map2(pa, pb, (a, _) => a);
 }
 
 // (>>) :: f a -> f b -> f b
@@ -112,47 +102,47 @@ function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
   return (i: string, c: Cursor) => {
-    const parser = liftA2((x: T, xs: T[]) => [x, ...xs], p, zeroOrMore(p));
+    const parser = map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs]);
     return parser(i, c);
   };
 }
 
 function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
-  return or(fmap(p, Array.of.bind(Array)), pure([]));
+  return or(map(p, Array.of.bind(Array)), pure([]));
 }
 
 // EXTRA UTILS
-function char(grapheme: string): Parser<string> {
+function char(grapheme: Grapheme): Parser<Grapheme> {
   return satisfy((char) => char === grapheme);
 }
 
-function isDigit(grapheme: string): boolean {
+function isDigit(grapheme: Grapheme): boolean {
   return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(grapheme);
 }
 
-function isWhitespace(grapheme: string): boolean {
+function isWhitespace(grapheme: Grapheme): boolean {
   return [" ", "\t", "\n"].includes(grapheme);
 }
 
-const integer: Parser<number> = fmap(
+const integer: Parser<number> = map(
   oneOrMore(satisfy(isDigit)),
   (xs) => parseInt(xs.join(""), 10),
 );
 const whitespace = zeroOrMore(satisfy(isWhitespace));
 
-function isAlpha(grapheme: string): boolean {
+function isAlpha(grapheme: Grapheme): boolean {
   return (/[a-zA-Z]/).test(grapheme);
 }
 const alpha = satisfy(isAlpha);
 
 function word(str: string): Parser<string> {
-  return fmap(traverse(char, Array.from(str)), (cs) => cs.join(""));
+  return map(traverse(char, Array.from(str)), (cs) => cs.join(""));
 }
 
 function traverse<A, B>(apb: (chr: B) => Parser<A>, chrs: B[]): Parser<A[]> {
   return (i: string, c: Cursor) =>
     chrs.reduceRight(
-      (acc, chr) => liftA2((x: A, xs: A[]) => [x, ...xs], apb(chr), acc),
+      (acc, chr) => map2(apb(chr), acc, (x: A, xs: A[]) => [x, ...xs]),
       pure<A[]>([]),
     )(i, c);
 }
@@ -221,7 +211,7 @@ interface TaggedInt {
   value: number;
 }
 
-const white = fmap(oneOrMore(satisfy(isWhitespace)), (cs) => cs.join(""));
+const white = map(oneOrMore(satisfy(isWhitespace)), (cs) => cs.join(""));
 const spaceOrEqual = or(white, char("="));
 
 function taggedInteger(tag: string): (val: number) => TaggedInt {
@@ -231,7 +221,7 @@ function taggedInteger(tag: string): (val: number) => TaggedInt {
 function parseArg(flag: string): Parser<TaggedInt> {
   return trimEnd(right(
     word("--" + flag),
-    right(spaceOrEqual, fmap(integer, taggedInteger(flag))),
+    right(spaceOrEqual, map(integer, taggedInteger(flag))),
   ));
 }
 

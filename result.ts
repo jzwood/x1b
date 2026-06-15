@@ -11,7 +11,7 @@ export function ok<E, T>(value: T): Result<E, T> {
 }
 
 // IMPLEMENTS FUNCTOR
-export function fmap<E, A, B>(
+export function map<E, A, B>(
   result: Result<E, A>,
   fn: (a: A) => B,
 ): Result<E, B> {
@@ -24,9 +24,4 @@ export function bind<E, A, B>(
   fn: (a: A) => Result<E, B>,
 ): Result<E, B> {
   return result.ok ? fn(result.value) : result;
-}
-
-// IMPLEMENTS ALTERNATIVE
-export function alt<E, T>(r1: Result<E, T>, r2: Result<E, T>): Result<E, T> {
-  return r1.ok ? r1 : r2;
 }
