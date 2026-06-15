@@ -241,7 +241,7 @@ const parseArgs = zeroOrMore(
     alt(
       parseArg("hello"),
       parseArg("my-flag"),
-    )
+    ),
   ),
 );
 

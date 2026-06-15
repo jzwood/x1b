@@ -49,12 +49,24 @@ function pure<T>(result: T): Parser<T> {
     Result.ok({ result, cursor, remainder: input });
 }
 
+// (<*>) :: f (a -> b) -> f a -> f b
+function ap<A, B>(pa: Parser<A>, pab: Parser<(a: A) => B>): Parser<B> {
+  return (input: string, cursor: Cursor) =>
+    Result.bind(
+      pab(input, cursor),
+      (ok: ParseOk<(a: A) => B>): ParseResult<B> =>
+        fmap(pa, ok.result)(ok.remainder, ok.cursor),
+    );
+}
+
+// liftA2 :: (a -> b -> c) -> f a -> f b -> f c
 function liftA2<A, B, C>(
   abc: (a: A, b: B) => C,
   pa: Parser<A>,
   pb: Parser<B>,
 ): Parser<C> {
   return bind(pa, (a) => bind(pb, (b) => pure(abc(a, b))));
+  //return bind(pa, (a) => fmap(pb, (b) => abc(a, b)));
 }
 
 // IMPLEMENTS MONAD
@@ -69,7 +81,7 @@ function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
 
 // (<*) :: f a -> f b -> f a
 function left<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
-  return bind(pa, (_) => pa);
+  return liftA2((a, _) => a, pa, pb);
 }
 
 // (>>) :: f a -> f b -> f b
@@ -77,15 +89,15 @@ function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
   return bind(pa, (_) => pb);
 }
 
-function or<A>(...parsers: Parser<A>[]): Parser<A> {
+function or<A>(...ps: Parser<A>[]): Parser<A> {
   return (input: string, cursor: Cursor) => {
-    const [p, ...ps] = parsers;
-    if (p == null) return Result.err(cursor);
-    const result = p(input, cursor);
+    const [p1, ...p2s] = ps;
+    if (p1 == null) return Result.err(cursor);
+    const result = p1(input, cursor);
     if (result.ok) {
       return result;
     }
-    const parser = or(...ps);
+    const parser = or(...p2s);
     return parser(input, cursor);
   };
 }
