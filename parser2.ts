@@ -9,58 +9,37 @@ const CURSOR = Object.freeze({ line: 0, col: 0 });
 
 type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 type ParseError = Cursor;
-type Grapheme = string
+type Grapheme = string;
 type ParseResult<T> = Result.Result<ParseError, ParseOk<T>>;
-// TODO switch order or arguments and make cursor have default value
 type Parser<T> = (
   input: string,
   cursor: Cursor,
 ) => ParseResult<T>;
 
-function satisfy(p: (a: Grapheme) => boolean): Parser<Grapheme> {
-  return (input: string, c: Cursor) => {
+function satisfy(predicate: (grapheme: Grapheme) => boolean): Parser<Grapheme> {
+  return (input: string, cursor: Cursor) => {
     const result = input.at(0);
-    if (result != null && p(result)) {
+    if (result != null && predicate(result)) {
       const remainder = input.slice(1);
-      const { line, col } = c;
-      const cursor = result === "\n"
+      const { line, col } = cursor;
+      const ncursor = result === "\n"
         ? { line: line + 1, col }
         : { line, col: col + 1 };
-      return Result.ok({ result, cursor, remainder });
+      return Result.ok({ result, cursor: ncursor, remainder });
     }
-    return Result.err(c);
+    return Result.err(cursor);
   };
 }
 
-// IMPLEMENTS FUNCTOR
-// (<$>) :: f a -> (a -> b) -> f b
-function map<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
+function map<A, B>(pa: Parser<A>, fn: (result: A) => B): Parser<B> {
   return (input: string, cursor: Cursor) =>
-    Result.map(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
+    Result.map(pa(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
       result: fn(ok.result),
       cursor: ok.cursor,
       remainder: ok.remainder,
     }));
 }
 
-// IMPLEMENTS APPLICATIVE FUNCTOR
-// pure :: a -> f a
-function pure<T>(result: T): Parser<T> {
-  return (input: string, cursor: Cursor) =>
-    Result.ok({ result, cursor, remainder: input });
-}
-
-// map2 :: (a -> b -> c) -> f a -> f b -> f c
-function map2<A, B, C>(
-  pa: Parser<A>,
-  pb: Parser<B>,
-  abc: (a: A, b: B) => C
-): Parser<C> {
-  return bind(pa, (a) => bind(pb, (b) => pure(abc(a, b))));
-}
-
-// IMPLEMENTS MONAD
-// (>>=) :: m a -> (a -> m b) -> m b
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
   return (input: string, cursor: Cursor) =>
     Result.bind(
@@ -69,49 +48,59 @@ function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
     );
 }
 
-// (<*) :: f a -> f b -> f a
+function pure<A>(result: A): Parser<A> {
+  return (input: string, cursor: Cursor) =>
+    Result.ok({ result, cursor, remainder: input });
+}
+
+function map2<A, B, C>(
+  pa: Parser<A>,
+  pb: Parser<B>,
+  abc: (a: A, b: B) => C,
+): Parser<C> {
+  return bind(pa, (a) => bind(pb, (b) => pure(abc(a, b))));
+}
+
+function map3<A, B, C, D>(
+  pa: Parser<A>,
+  pb: Parser<B>,
+  pc: Parser<C>,
+  abcd: (a: A, b: B, c: C) => D,
+): Parser<D> {
+  return bind(pa, (a) => bind(pb, (b) => bind(pc, (c) => pure(abcd(a, b, c)))));
+}
+
 function left<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<A> {
   return map2(pa, pb, (a, _) => a);
 }
 
-// (>>) :: f a -> f b -> f b
 function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
-  return bind(pa, (_) => pb);
+  return map2(pa, pb, (_, b) => b);
 }
 
-function or<A>(...ps: Parser<A>[]): Parser<A> {
+function or<A>(...pas: Parser<A>[]): Parser<A> {
   return (input: string, cursor: Cursor) => {
-    const [p1, ...p2s] = ps;
-    if (p1 == null) return Result.err(cursor);
-    const result = p1(input, cursor);
-    if (result.ok) {
-      return result;
-    }
-    const parser = or(...p2s);
-    return parser(input, cursor);
+    const [p, ...ps] = pas;
+    if (p == null) return Result.err(cursor);
+    const result = p(input, cursor);
+    return result.ok ? result : or(...ps)(input, cursor);
   };
 }
 
-// CORE UTILS
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (i: string, c: Cursor) => {
-    const parser = or(oneOrMore(p), pure([]));
-    return parser(i, c);
-  };
+  return (input: string, cursor: Cursor) =>
+    or(oneOrMore(p), pure([]))(input, cursor);
 }
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (i: string, c: Cursor) => {
-    const parser = map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs]);
-    return parser(i, c);
-  };
+  return (input: string, cursor: Cursor) =>
+    map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs])(input, cursor);
 }
 
 function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
   return or(map(p, Array.of.bind(Array)), pure([]));
 }
 
-// EXTRA UTILS
 function char(grapheme: Grapheme): Parser<Grapheme> {
   return satisfy((char) => char === grapheme);
 }
@@ -131,27 +120,27 @@ const integer: Parser<number> = map(
 const whitespace = zeroOrMore(satisfy(isWhitespace));
 
 function isAlpha(grapheme: Grapheme): boolean {
-  return (/[a-zA-Z]/).test(grapheme);
+  return (/^[a-zA-Z]$/).test(grapheme);
 }
 const alpha = satisfy(isAlpha);
 
 function word(str: string): Parser<string> {
-  return map(traverse(char, Array.from(str)), (cs) => cs.join(""));
+  return map(traverse(char, Array.from(str)), (chars) => chars.join(""));
 }
 
-function traverse<A, B>(apb: (chr: B) => Parser<A>, chrs: B[]): Parser<A[]> {
-  return (i: string, c: Cursor) =>
-    chrs.reduceRight(
-      (acc, chr) => map2(apb(chr), acc, (x: A, xs: A[]) => [x, ...xs]),
+function traverse<A, B>(apb: (x: B) => Parser<A>, xs: B[]): Parser<A[]> {
+  return (input: string, cursor: Cursor) =>
+    xs.reduceRight(
+      (acc, x) => map2(apb(x), acc, (y: A, ys: A[]) => [y, ...ys]),
       pure<A[]>([]),
-    )(i, c);
+    )(input, cursor);
 }
 
-function sequence<T>(ts: Parser<T>[]): Parser<T[]> {
-  return traverse((x) => x, ts);
+function sequence<T>(ps: Parser<T>[]): Parser<T[]> {
+  return traverse((p) => p, ps);
 }
 
-//console.log(word("CAT")("CATMAN", CURSOR));
+console.log(word("CAT")("CATMAN", CURSOR));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
@@ -181,12 +170,12 @@ const parseIntArr: Parser<number[]> = wrap(
   "]",
 );
 
-//console.log(
-//parseIntArr(
-//CURSOR,
-//"[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
-//),
-//);
+console.log(
+  parseIntArr(
+    "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
+    CURSOR,
+  ),
+);
 
 /*
 {
