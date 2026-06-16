@@ -17,7 +17,7 @@ type Parser<T> = (
 ) => ParseResult<T>;
 
 function satisfy(predicate: (grapheme: Grapheme) => boolean): Parser<Grapheme> {
-  return (input: string, cursor: Cursor) => {
+  return (input: string, cursor: Cursor = CURSOR) => {
     const result = input.at(0);
     if (result != null && predicate(result)) {
       const remainder = input.slice(1);
@@ -32,7 +32,7 @@ function satisfy(predicate: (grapheme: Grapheme) => boolean): Parser<Grapheme> {
 }
 
 function map<A, B>(pa: Parser<A>, fn: (result: A) => B): Parser<B> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     Result.map(pa(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
       result: fn(ok.result),
       cursor: ok.cursor,
@@ -41,7 +41,7 @@ function map<A, B>(pa: Parser<A>, fn: (result: A) => B): Parser<B> {
 }
 
 function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     Result.bind(
       pa(input, cursor),
       (ok) => apb(ok.result)(ok.remainder, ok.cursor),
@@ -49,7 +49,7 @@ function bind<A, B>(pa: Parser<A>, apb: (a: A) => Parser<B>): Parser<B> {
 }
 
 function pure<A>(result: A): Parser<A> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     Result.ok({ result, cursor, remainder: input });
 }
 
@@ -79,7 +79,7 @@ function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
 }
 
 function or<A>(...pas: Parser<A>[]): Parser<A> {
-  return (input: string, cursor: Cursor) => {
+  return (input: string, cursor: Cursor = CURSOR) => {
     const [p, ...ps] = pas;
     if (p == null) return Result.err(cursor);
     const result = p(input, cursor);
@@ -88,12 +88,12 @@ function or<A>(...pas: Parser<A>[]): Parser<A> {
 }
 
 function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     or(oneOrMore(p), pure([]))(input, cursor);
 }
 
 function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs])(input, cursor);
 }
 
@@ -129,7 +129,7 @@ function word(str: string): Parser<string> {
 }
 
 function traverse<A, B>(apb: (x: B) => Parser<A>, xs: B[]): Parser<A[]> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     xs.reduceRight(
       (acc, x) => map2(apb(x), acc, (y: A, ys: A[]) => [y, ...ys]),
       pure<A[]>([]),
@@ -140,7 +140,7 @@ function sequence<T>(ps: Parser<T>[]): Parser<T[]> {
   return traverse((p) => p, ps);
 }
 
-console.log(word("CAT")("CATMAN", CURSOR));
+console.log(word("CAT")("CATMAN"));
 
 function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
   return right(char(l), left(p, char(r)));
@@ -171,11 +171,7 @@ const parseIntArr: Parser<number[]> = wrap(
 );
 
 console.log(
-  parseIntArr(
-    "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
-    CURSOR,
-  ),
-);
+  parseIntArr("[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE"));
 
 /*
 {
@@ -224,7 +220,7 @@ const parseArgs = zeroOrMore(
 
 const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
 
-console.log(parseArgs(input, CURSOR));
+console.log(parseArgs(input));
 
 enum Operator {
   Plus,
@@ -247,7 +243,7 @@ const parseOperator: Parser<Operator> = or(
   map(char("/"), () => Operator.Divide),
 );
 function parseExpr(): Parser<Expr> {
-  return (input: string, cursor: Cursor) =>
+  return (input: string, cursor: Cursor = CURSOR) =>
     or<Expr>(
       integer,
       wrap(
@@ -262,3 +258,5 @@ function parseExpr(): Parser<Expr> {
       ),
     )(input, cursor);
 }
+
+console.log(parseExpr()("(23 + ((1 * 3) / 9))"))
