@@ -226,15 +226,39 @@ const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
 
 console.log(parseArgs(input, CURSOR));
 
-//{
-//ok: true,
-//value: {
-//result: [
-//{ tag: "hello", value: 23 },
-//{ tag: "hello", value: 99 },
-//{ tag: "my-flag", value: 9 }
-//],
-//cursor: { line: 0, col: 34 },
-//remainder: "somename 9000"
-//}
-//}
+enum Operator {
+  Plus,
+  Minus,
+  Multiply,
+  Divide,
+}
+interface Arithmetic {
+  operator: Operator;
+  left: Expr;
+  right: Expr;
+}
+
+type Expr = number | Arithmetic;
+
+const parseOperator: Parser<Operator> = or(
+  map(char("+"), () => Operator.Plus),
+  map(char("-"), () => Operator.Minus),
+  map(char("*"), () => Operator.Multiply),
+  map(char("/"), () => Operator.Divide),
+);
+function parseExpr(): Parser<Expr> {
+  return (input: string, cursor: Cursor) =>
+    or<Expr>(
+      integer,
+      wrap(
+        "(",
+        map3(
+          parseExpr(),
+          trim(parseOperator),
+          parseExpr(),
+          (left, operator, right) => ({ left, operator, right }),
+        ),
+        ")",
+      ),
+    )(input, cursor);
+}
