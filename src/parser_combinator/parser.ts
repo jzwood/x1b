@@ -16,7 +16,9 @@ export type Parser<T> = (
   cursor: Cursor,
 ) => ParseResult<T>;
 
-export function satisfy(predicate: (grapheme: Grapheme) => boolean): Parser<Grapheme> {
+export function satisfy(
+  predicate: (grapheme: Grapheme) => boolean,
+): Parser<Grapheme> {
   return (input: string, cursor: Cursor = CURSOR) => {
     const result = input.at(0);
     if (result != null && predicate(result)) {

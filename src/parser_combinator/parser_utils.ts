@@ -1,10 +1,10 @@
-import * as P from './parser.ts'
-import { Parser } from './parser.ts'
+import * as P from "./parser.ts";
+import { Parser } from "./parser.ts";
 
 // USEFUL UTILS BUT NOTHING A USER COULDN'T MAKE THEMSELVES
 
 export function isDigit(grapheme: P.Grapheme): boolean {
-  return /^\d$/.test(grapheme)
+  return /^\d$/.test(grapheme);
 }
 
 export function isWhitespace(grapheme: P.Grapheme): boolean {

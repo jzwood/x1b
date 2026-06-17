@@ -1,11 +1,15 @@
 import { assertEquals } from "@std/assert";
-import * as P from './parser.ts'
-import { Parser } from './parser.ts'
-import { wrap, trim, trimEnd, integer, isWhitespace } from './parser_utils.ts'
+import * as P from "./parser.ts";
+import { Parser } from "./parser.ts";
+import { integer, isWhitespace, trim, trimEnd, wrap } from "./parser_utils.ts";
 
-Deno.test(function addTest() {
+Deno.test(function wordTest() {
   assertEquals(
-    P.word("CAT")("CATMAN", P.CURSOR), {ok: true, value: {result: '', cursor: {line: 0, col: 0}, remainder: ''}}
+    P.word("CAT")("CATMAN", P.CURSOR),
+    {
+      ok: true,
+      value: { result: "CAT", remainder: "MAN", cursor: { line: 0, col: 3 } },
+    },
   );
 });
 
@@ -25,9 +29,30 @@ const parseIntArr: Parser<number[]> = wrap(
   "]",
 );
 
-console.log(
-  parseIntArr("[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE"));
-
+Deno.test(function parseIntArrTest() {
+  assertEquals(
+    parseIntArr(
+      "[   1 ,  7 , 3 , 45, 231,   543,   1    ] HELLO THERE",
+      P.CURSOR,
+    ),
+    {
+      ok: true,
+      value: {
+        result: [
+          1,
+          7,
+          3,
+          45,
+          231,
+          543,
+          1,
+        ],
+        cursor: { line: 0, col: 41 },
+        remainder: " HELLO THERE",
+      },
+    },
+  );
+});
 
 interface TaggedInt {
   tag: string;
@@ -58,7 +83,24 @@ const parseArgs = P.zeroOrMore(
 
 const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
 
-console.log(parseArgs(input));
+Deno.test(function parseArgsTest() {
+  assertEquals(
+    parseArgs(input, P.CURSOR),
+    {
+      ok: true,
+      value: {
+        result: [
+          { tag: "hello", value: 23 },
+          { tag: "hello", value: 99 },
+          { tag: "my-flag", value: 9 },
+          { tag: "somename", value: 9000 },
+        ],
+        cursor: { line: 0, col: 57 },
+        remainder: "",
+      },
+    },
+  );
+});
 
 enum Operator {
   Plus,
@@ -97,4 +139,21 @@ function parseExpr(): Parser<Expr> {
     )(input, cursor);
 }
 
-console.log(parseExpr()("(23 + ((1 * 3) / 9))"))
+Deno.test(function parseExprTest() {
+  assertEquals(parseExpr()("(23 + ((1 * 3) / 9))", P.CURSOR), {
+    ok: true,
+    value: {
+      result: {
+        left: 23,
+        operator: 0,
+        right: {
+          left: { left: 1, operator: 2, right: 3 },
+          operator: 3,
+          right: 9,
+        },
+      },
+      cursor: { line: 0, col: 20 },
+      remainder: "",
+    },
+  });
+});

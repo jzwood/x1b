@@ -69,6 +69,6 @@ setInterval(() => {
 }, 1000);
 
 process.stdin.on("data", (chunk) => {
-  const x = chunk.toString('ascii')
-  game = onKey(game, chunk.toString('ascii'));
+  const x = chunk.toString("ascii");
+  game = onKey(game, chunk.toString("ascii"));
 });

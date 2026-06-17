@@ -1,6 +1,6 @@
-import process from "node:process"
-import { Buffer } from 'node:buffer';
-import { ESC } from './const.ts'
+import process from "node:process";
+import { Buffer } from "node:buffer";
+import { ESC } from "./const.ts";
 
 export function cmd(code: string) {
   return process.stdin.write(ESC + code);
