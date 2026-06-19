@@ -81,11 +81,9 @@ const parseArgs = P.zeroOrMore(
   ),
 );
 
-const input = "--hello=23    --hello=99 --my-flag   9   --somename  9000";
-
 Deno.test(function parseArgsTest() {
   assertEquals(
-    parseArgs(input, P.CURSOR),
+    parseArgs("--hello=23    --hello=99 --my-flag   9   --somename  9000", P.CURSOR),
     {
       ok: true,
       value: {
