@@ -11,6 +11,7 @@ USAGE:
   deno run x1b.ts <tui-app>
 
 EXAMPLES:
+  deno run --allow-env --allow-run main.ts node snake.js
   deno run x1b.ts python3 tui-app.py
   deno run x1b.ts node tui-app.js
   deno run x1b.ts tui-app.sh

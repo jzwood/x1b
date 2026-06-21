@@ -5,11 +5,15 @@ import { once } from "node:events";
 import { USAGE } from "./const.ts";
 import { onStdout } from "./stdout.ts";
 import { onStdin } from "./stdin.ts";
-import { cmd } from "./utils.ts";
+import {
+  clearScreen,
+  enableAlternateScreenBuffer,
+  hideCursor,
+  moveCursorTo00,
+} from "./escape_codes.ts";
 
 export async function main() {
-  const command = process.argv.at(2);
-  const args = process.argv.slice(3);
+  const [command, ...args] = Deno.args;
   if (!command) {
     console.info(USAGE);
     return null;
@@ -22,14 +26,10 @@ export async function main() {
   });
   program.stdout.on("data", onStdout);
 
-  // enable alternate screen buffer
-  cmd("?1049h");
-  // hide cursor
-  cmd("?25l");
-  // move cursor to 0, 0
-  cmd("H");
-  // clear screen
-  cmd("2J");
+  enableAlternateScreenBuffer();
+  hideCursor();
+  moveCursorTo00();
+  clearScreen();
 
   const [_code] = await once(program, "close");
 }

@@ -11,9 +11,9 @@ export function onStdin(
   const is = eq.bind(null, chunk);
   if (is(QUIT)) {
     // disable alternate screen buffer
-    cmd("?1049l");
+    cmd("[?1049l");
     // show cursor
-    cmd("?25h");
+    cmd("[?25h");
     process.exit(0);
   } else if (is(UP)) {
     program.stdin.write("UP");

@@ -3,6 +3,6 @@ import { Buffer } from "node:buffer";
 import { cmd } from "./utils.ts";
 
 export function onStdout(frame: string) {
-  cmd("H");
+  cmd("[H");
   process.stdout.write(frame);
 }
