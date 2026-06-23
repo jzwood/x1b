@@ -7,6 +7,10 @@ export function isDigit(grapheme: P.Grapheme): boolean {
   return /^\d$/.test(grapheme);
 }
 
+export function join(chars: P.Grapheme[]) {
+  return chars.join('')
+}
+
 export function isWhitespace(grapheme: P.Grapheme): boolean {
   return [" ", "\t", "\n"].includes(grapheme);
 }

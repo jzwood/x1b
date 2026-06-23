@@ -1,12 +1,15 @@
 import {
   CURSOR,
   Cursor,
+  join,
   map,
   map3,
   oneOf,
   oneOrMore,
   Parser,
+  right,
   satisfy,
+  trimEnd,
   word,
   wrap,
   zeroOrMore,
@@ -22,23 +25,58 @@ enum TagName {
   Cursor = "cursor",
 }
 
+enum AttrKey {
+  Flow = "flow",
+  BorderStyle = "border-style",
+  BorderColor = "border-color",
+  BgColor = "bg-color",
+  FontColor = "font-color",
+}
+
+//const ATTR_VALUE = {
+//[AttrKey.Flow]: ['auto', 'row', 'column'],
+//Flow = "flow",
+//BorderStyle = "border-style",
+//BorderColor = "border-color",
+//BgColor = "bg-color",
+//FontColor = "font-color",
+//}
+
+//enum AttrValue {
+//Auto,
+//Row,
+//Column,
+//Solid,
+//None,
+//}
+
+interface Attribute {
+  key: string;
+  value: string;
+}
+
+function isAttrChar(grapheme: string) {
+  return (/^[a-z0-9#-]$/).test(grapheme);
+}
+function parseAttribute(key: string): Parser<Attribute> {
+  const parseValue = wrap('="', map(oneOrMore(satisfy(isAttrChar)), join), '"');
+  return map(right(word(key), parseValue), (value) => ({ key, value }));
+}
+
 interface Element {
   tag: TagName;
+  attrs: Attribute[];
   children: TML;
 }
 
 type Node = string | Element;
 type TML = Node[];
 
-const textTML: Parser<string> = map(
-  oneOrMore(satisfy((c) => c !== "<")),
-  (chars) => chars.join(""),
-);
-
 function parseCustomElem(tag: TagName): Parser<Element> {
   return (input: string, cursor: Cursor = CURSOR) => {
-    const parseOpen: Parser<string> = wrap("<", word(tag), ">");
-    const parseClose: Parser<string> = wrap("</", word(tag), ">");
+    const parseTag = word(tag);
+    const parseOpen: Parser<string> = wrap("<", parseTag, ">");
+    const parseClose: Parser<string> = wrap("</", parseTag, ">");
     const parser = map3(
       parseOpen,
       parseML,
@@ -49,17 +87,14 @@ function parseCustomElem(tag: TagName): Parser<Element> {
   };
 }
 
-const parseElem: Parser<Element> = oneOf(
-  parseCustomElem(TagName.Box),
-  parseCustomElem(TagName.Italics),
-  parseCustomElem(TagName.Underline),
-  parseCustomElem(TagName.Bold),
-  parseCustomElem(TagName.Strike),
-  parseCustomElem(TagName.Preformatted),
-  parseCustomElem(TagName.Cursor),
+const parseText: Parser<string> = map(
+  oneOrMore(satisfy((c) => c !== "<")),
+  join,
 );
-
-const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, textTML));
+const parseElem: Parser<Element> = oneOf(
+  ...Object.values(TagName).map(parseCustomElem),
+);
+const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, parseText));
 
 const input: string = `<box>
   <b>header</b>
@@ -68,6 +103,6 @@ const input: string = `<box>
 </box>
 `;
 
-const result1 = parseElem(input, CURSOR)
+const result1 = parseElem(input, CURSOR);
 const result2 = parseElem("<box>hello <b></b><u></u>world</box>", CURSOR);
-console.log(result1);
+console.log(JSON.stringify(result1, null, 2));
