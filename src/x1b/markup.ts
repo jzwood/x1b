@@ -53,7 +53,9 @@ const parseElem: Parser<Element> = oneOf(
   parseCustomElem(TagName.Box),
   parseCustomElem(TagName.Italics),
   parseCustomElem(TagName.Underline),
+  parseCustomElem(TagName.Bold),
   parseCustomElem(TagName.Strike),
+  parseCustomElem(TagName.Preformatted),
   parseCustomElem(TagName.Cursor),
 );
 
@@ -62,9 +64,10 @@ const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, textTML));
 const input: string = `<box>
   <b>header</b>
   hello world
-  <box>my name is <s>jake<s> chipmunk</box>
+  <box>my name is <s>jake</s> chipmunk</box>
 </box>
 `;
 
-const result = parseElem("<box>hello <u></u>world</box>", CURSOR);
-console.log(result);
+const result1 = parseElem(input, CURSOR)
+const result2 = parseElem("<box>hello <b></b><u></u>world</box>", CURSOR);
+console.log(result1);
