@@ -1,41 +1,25 @@
 import {
-  //anyWhitespace,
-  //bind,
-  char,
   CURSOR,
   Cursor,
-  //left,
-  //map,
   map,
   map3,
   oneOf,
   oneOrMore,
   Parser,
-  //right,
   satisfy,
-  traverse,
-  //someWhitespace,
   word,
   wrap,
   zeroOrMore,
 } from "../parser/index.ts";
 
-//<box></box>
-//<i></i>
-//<u></u>
-//<b></b>
-//<s></s>
-//<pre></pre>
-//<cursor></cursor>
-
 enum TagName {
-  Box,
-  Italics,
-  Underline,
-  Bold,
-  Strike,
-  Preformatted,
-  Cursor,
+  Box = "box",
+  Italics = "i",
+  Underline = "u",
+  Bold = "b",
+  Strike = "s",
+  Preformatted = "pre",
+  Cursor = "cursor",
 }
 
 interface Element {
@@ -43,27 +27,18 @@ interface Element {
   children: TML;
 }
 
-type TML = string | Element[];
+type Node = string | Element;
+type TML = Node[];
 
 const textTML: Parser<string> = map(
   oneOrMore(satisfy((c) => c !== "<")),
   (chars) => chars.join(""),
 );
 
-const parseElem: Parser<Element> = oneOf(
-  parseCustomElem("box", TagName.Box),
-  parseCustomElem("i", TagName.Italics),
-  parseCustomElem("u", TagName.Underline),
-  parseCustomElem("s", TagName.Strike),
-  parseCustomElem("cursor", TagName.Cursor),
-);
-
-const parseML: Parser<TML> = oneOf<TML>(zeroOrMore(parseElem), textTML);
-
-function parseCustomElem(name: string, tag: TagName): Parser<Element> {
+function parseCustomElem(tag: TagName): Parser<Element> {
   return (input: string, cursor: Cursor = CURSOR) => {
-    const parseOpen: Parser<string> = wrap("<", word(name), ">");
-    const parseClose: Parser<string> = wrap("</", word(name), ">");
+    const parseOpen: Parser<string> = wrap("<", word(tag), ">");
+    const parseClose: Parser<string> = wrap("</", word(tag), ">");
     const parser = map3(
       parseOpen,
       parseML,
@@ -73,3 +48,23 @@ function parseCustomElem(name: string, tag: TagName): Parser<Element> {
     return parser(input, cursor);
   };
 }
+
+const parseElem: Parser<Element> = oneOf(
+  parseCustomElem(TagName.Box),
+  parseCustomElem(TagName.Italics),
+  parseCustomElem(TagName.Underline),
+  parseCustomElem(TagName.Strike),
+  parseCustomElem(TagName.Cursor),
+);
+
+const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, textTML));
+
+const input: string = `<box>
+  <b>header</b>
+  hello world
+  <box>my name is <s>jake<s> chipmunk</box>
+</box>
+`;
+
+const result = parseElem("<box>hello <u></u>world</box>", CURSOR);
+console.log(result);

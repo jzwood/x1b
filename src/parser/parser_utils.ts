@@ -32,6 +32,10 @@ export function trim<T>(p: Parser<T>): Parser<T> {
   return P.right(anyWhitespace, P.left(p, anyWhitespace));
 }
 
+export function trimStart<T>(p: Parser<T>): Parser<T> {
+  return P.right(anyWhitespace, p);
+}
+
 export function trimEnd<T>(p: Parser<T>): Parser<T> {
   return P.left(p, anyWhitespace);
 }
