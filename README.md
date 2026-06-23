@@ -32,6 +32,15 @@ default: flow="auto"
 
 border="solid" | "none"
 default: border="solid"
+
+border-color="<hex>"
+default: border-color="#4f2b84"
+
+bg-color="<hex>"
+default: bg-color="#16191F"
+
+font-color="<hex>"
+default: font-color="#D9D9D9"
 ```
 
 ### examples
@@ -40,12 +49,4 @@ default: border="solid"
 FRAME:<box>5:36</box>
 FRAME:<box>5:35</box>
 FRAME:<box>5:34</box>
-```
-
-## Config
-
-```
-{
-    "theme": "dark" | "light" | "rainbow"
-}
 ```

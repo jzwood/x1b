@@ -16,7 +16,8 @@ export const integer: Parser<number> = P.map(
   (xs) => parseInt(xs.join(""), 10),
 );
 
-export const whitespace = P.zeroOrMore(P.satisfy(isWhitespace));
+export const someWhitespace = P.oneOrMore(P.satisfy(isWhitespace));
+export const anyWhitespace = P.zeroOrMore(P.satisfy(isWhitespace));
 
 export function isAlpha(grapheme: P.Grapheme): boolean {
   return (/^[a-zA-Z]$/).test(grapheme);
@@ -24,13 +25,13 @@ export function isAlpha(grapheme: P.Grapheme): boolean {
 export const alpha = P.satisfy(isAlpha);
 
 export function wrap<T>(l: string, p: Parser<T>, r: string): Parser<T> {
-  return P.right(P.char(l), P.left(p, P.char(r)));
+  return P.right(P.word(l), P.left(p, P.word(r)));
 }
 
 export function trim<T>(p: Parser<T>): Parser<T> {
-  return P.right(whitespace, P.left(p, whitespace));
+  return P.right(anyWhitespace, P.left(p, anyWhitespace));
 }
 
 export function trimEnd<T>(p: Parser<T>): Parser<T> {
-  return P.left(p, whitespace);
+  return P.left(p, anyWhitespace);
 }
