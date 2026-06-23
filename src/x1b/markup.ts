@@ -1,17 +1,19 @@
 import {
-  CURSOR,
-  Cursor,
   //anyWhitespace,
   //bind,
-  //char,
+  char,
+  CURSOR,
+  Cursor,
   //left,
   //map,
+  map,
   map3,
   oneOf,
+  oneOrMore,
   Parser,
-  //oneOrMore,
   //right,
-  //satisfy,
+  satisfy,
+  traverse,
   //someWhitespace,
   word,
   wrap,
@@ -43,35 +45,22 @@ interface Element {
 
 type TML = string | Element[];
 
-//const parseTagName: Parser<TagName> = oneOf(
-//map(word("box"), () => TagName.Box),
-//map(word("i"), () => TagName.Italics),
-//map(word("u"), () => TagName.Underline),
-//map(word("s"), () => TagName.Strike),
-//map(word("pre"), () => TagName.Preformatted),
-//map(word("cursor"), () => TagName.Cursor),
-//);
-
-const parseTagName: Parser<string> = oneOf(
-  word("box"),
-  word("i"),
-  word("u"),
-  word("s"),
-  word("pre"),
-  word("cursor"),
+const textTML: Parser<string> = map(
+  oneOrMore(satisfy((c) => c !== "<")),
+  (chars) => chars.join(""),
 );
 
-const parseML: Parser<TML> = zeroOrMore(
-  oneOf(
-    parseElem("box", TagName.Box),
-    parseElem("i", TagName.Italics),
-    parseElem("u", TagName.Underline),
-    parseElem("s", TagName.Strike),
-    parseElem("cursor", TagName.Cursor),
-  ),
+const parseElem: Parser<Element> = oneOf(
+  parseCustomElem("box", TagName.Box),
+  parseCustomElem("i", TagName.Italics),
+  parseCustomElem("u", TagName.Underline),
+  parseCustomElem("s", TagName.Strike),
+  parseCustomElem("cursor", TagName.Cursor),
 );
 
-function parseElem(name: string, tag: TagName): Parser<Element> {
+const parseML: Parser<TML> = oneOf<TML>(zeroOrMore(parseElem), textTML);
+
+function parseCustomElem(name: string, tag: TagName): Parser<Element> {
   return (input: string, cursor: Cursor = CURSOR) => {
     const parseOpen: Parser<string> = wrap("<", word(name), ">");
     const parseClose: Parser<string> = wrap("</", word(name), ">");
