@@ -24,14 +24,6 @@ enum TagName {
   Cursor = "cursor",
 }
 
-//enum AttrKey {
-  //Flow = "flow",
-  //BorderStyle = "border-style",
-  //BorderColor = "border-color",
-  //BgColor = "bg-color",
-  //FontColor = "font-color",
-//}
-
 interface Attribute {
   key: string;
   value: string;
