@@ -6,7 +6,6 @@ import {
   oneOf,
   Parser,
   right,
-  satisfy,
   someWhitespace,
   trimEnd,
   word,
@@ -25,35 +24,27 @@ enum TagName {
   Cursor = "cursor",
 }
 
-enum AttrKey {
-  Flow = "flow",
-  BorderStyle = "border-style",
-  BorderColor = "border-color",
-  BgColor = "bg-color",
-  FontColor = "font-color",
-}
-
-//const ATTR_VALUE = {
-//[AttrKey.Flow]: ['auto', 'row', 'column'],
-//Flow = "flow",
-//BorderStyle = "border-style",
-//BorderColor = "border-color",
-//BgColor = "bg-color",
-//FontColor = "font-color",
-//}
-
-//enum AttrValue {
-//Auto,
-//Row,
-//Column,
-//Solid,
-//None,
+//enum AttrKey {
+  //Flow = "flow",
+  //BorderStyle = "border-style",
+  //BorderColor = "border-color",
+  //BgColor = "bg-color",
+  //FontColor = "font-color",
 //}
 
 interface Attribute {
   key: string;
   value: string;
 }
+
+interface Element {
+  tag: TagName;
+  attrs: Attribute[];
+  children: TML;
+}
+
+type Node = string | Element;
+type TML = Node[];
 
 const parseAttrKey: Parser<string> = wordBy((grapheme) =>
   (/^[a-z-]$/).test(grapheme)
@@ -66,15 +57,6 @@ const parseAttribute: Parser<Attribute> = map2(
   wrap('="', parseAttrValue, '"'),
   (key, value) => ({ key, value }),
 );
-
-interface Element {
-  tag: TagName;
-  attrs: Attribute[];
-  children: TML;
-}
-
-type Node = string | Element;
-type TML = Node[];
 
 function parseCustomElem(tag: TagName): Parser<Element> {
   return (input: string, cursor: Cursor = CURSOR) => {
@@ -101,15 +83,4 @@ const parseText: Parser<string> = wordBy((c) => c !== "<");
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
-const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, parseText));
-
-const input: string = `<box>
-  <b flow="auto" bg-color="#34eb0a">header</b>
-  hello world
-  <box>my name is <s font-color="#ddd">jake</s> chipmunk</box>
-</box>
-`;
-
-const result1 = parseElem(input, CURSOR);
-const result2 = parseElem("<box>hello <b></b><u></u>world</box>", CURSOR);
-console.log(JSON.stringify(result1, null, 2));
+export const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, parseText));

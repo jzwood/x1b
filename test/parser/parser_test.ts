@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
-import * as P from "./parser.ts";
-import { Parser } from "./parser.ts";
-import { integer, isWhitespace, trim, trimEnd, wrap } from "./parser_utils.ts";
+import * as P from "../../src/parser/parser.ts";
+import { Parser } from "../../src/parser/parser.ts";
+import { integer, isWhitespace, trim, trimEnd, wrap } from "../../src/parser/parser_utils.ts";
 
 Deno.test(function wordTest() {
   assertEquals(
