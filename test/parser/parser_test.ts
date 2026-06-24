@@ -1,14 +1,20 @@
 import { assertEquals } from "@std/assert";
 import * as P from "../../src/parser/parser.ts";
 import { Parser } from "../../src/parser/parser.ts";
-import { integer, isWhitespace, trim, trimEnd, wrap } from "../../src/parser/parser_utils.ts";
+import {
+  integer,
+  isWhitespace,
+  trim,
+  trimEnd,
+  wrap,
+} from "../../src/parser/parser_utils.ts";
 
 Deno.test(function wordTest() {
   assertEquals(
     P.word("CAT")("CATMAN", P.CURSOR),
     {
       ok: true,
-      value: { result: "CAT", remainder: "MAN", cursor: { line: 0, col: 3 } },
+      value: { result: "CAT", remainder: "MAN", cursor: { row: 0, col: 3, total: 3 } },
     },
   );
 });
@@ -47,7 +53,7 @@ Deno.test(function parseIntArrTest() {
           543,
           1,
         ],
-        cursor: { line: 0, col: 41 },
+        cursor: { row: 0, col: 41, total: 41 },
         remainder: " HELLO THERE",
       },
     },
@@ -96,7 +102,7 @@ Deno.test(function parseArgsTest() {
           { tag: "my-flag", value: 9 },
           { tag: "somename", value: 9000 },
         ],
-        cursor: { line: 0, col: 57 },
+        cursor: { row: 0, col: 57, total: 57 },
         remainder: "",
       },
     },
@@ -153,7 +159,7 @@ Deno.test(function parseExprTest() {
           right: 9,
         },
       },
-      cursor: { line: 0, col: 20 },
+      cursor: { row: 0, col: 20, total: 20 },
       remainder: "",
     },
   });

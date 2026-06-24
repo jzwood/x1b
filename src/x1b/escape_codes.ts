@@ -1,17 +1,19 @@
 import { cmd, esc } from "./utils.ts";
 
-export const enableAlternateScreenBuffer = () => cmd("[?1049h");
-export const disableAlternateScreenBuffer = () => cmd("[?1049l");
-export const showCursor = () => cmd("[?25h");
-export const hideCursor = () => cmd("[?25l");
-export const moveCursorTo00 = () => cmd("[H");
-export const moveCursorTo = (x: number, y: number) => cmd(`[${~~x};${~~y}H`);
-export const clearScreen = () => cmd("[2J");
+export const enableAlternateScreenBuffer = esc("[?1049h");
+export const disableAlternateScreenBuffer = esc("[?1049l");
+export const showCursor = esc("[?25h");
+export const hideCursor = esc("[?25l");
+export const moveCursorTo00 = esc("[H");
+export const moveCursorTo = (x: number, y: number) => esc(`[${~~x};${~~y}H`);
+export const clearScreen = esc("[2J");
 
-const reportCursorPos = esc('[6n')
-const saveCursorPos = esc('[s')
-const restorCursorPos = esc('[u')
-export getScreenSize = cmd(saveCursorPos, esc('[999;999H'), reportCursorPos, restorCursorPos)
-
-process.stdin.write(ESC + '[s' + ESC +  + ESC +  + ESC + '[u')
-
+const reportCursorPos = esc("[6n");
+const saveCursorPos = esc("[s");
+const resetCursorPos = esc("[u");
+export const reportScreenSize = cmd(
+  saveCursorPos,
+  moveCursorTo(999, 999),
+  reportCursorPos,
+  resetCursorPos,
+);

@@ -1,11 +1,12 @@
 import * as Result from "./result.ts";
 
 export interface Cursor {
-  line: number;
+  row: number;
   col: number;
+  total: number;
 }
 
-export const CURSOR: Cursor = Object.freeze({ line: 0, col: 0 });
+export const CURSOR: Cursor = Object.freeze({ row: 0, col: 0, total: 0 });
 
 export type ParseOk<T> = { result: T; cursor: Cursor; remainder: string };
 export type ParseError = Cursor;
@@ -23,10 +24,10 @@ export function satisfy(
     const result = input.at(0);
     if (result != null && predicate(result)) {
       const remainder = input.slice(1);
-      const { line, col } = cursor;
+      const { row, col, total } = cursor;
       const ncursor = result === "\n"
-        ? { line: line + 1, col }
-        : { line, col: col + 1 };
+        ? { row: row + 1, col: 0, total: total + 1 }
+        : { row, col: col + 1, total: total + 1 };
       return Result.ok({ result, cursor: ncursor, remainder });
     }
     return Result.err(cursor);

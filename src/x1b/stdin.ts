@@ -3,7 +3,7 @@ import process from "node:process";
 import { Buffer } from "node:buffer";
 import { DOWN, LEFT, QUIT, RIGHT, UP } from "./const.ts";
 import { eq } from "./utils.ts";
-import { showCursor, disableAlternateScreenBuffer } from './escape_codes.ts'
+import { disableAlternateScreenBuffer, showCursor } from "./escape_codes.ts";
 
 export function onStdin(
   program: ChildProcessWithoutNullStreams,
@@ -11,8 +11,8 @@ export function onStdin(
 ) {
   const is = eq.bind(null, chunk);
   if (is(QUIT)) {
-    disableAlternateScreenBuffer()
-    showCursor()
+    disableAlternateScreenBuffer();
+    showCursor();
     process.exit(0);
   } else if (is(UP)) {
     program.stdin.write("UP");

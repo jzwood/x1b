@@ -8,11 +8,13 @@ export function isDigit(grapheme: P.Grapheme): boolean {
 }
 
 export function join(chars: P.Grapheme[]) {
-  return chars.join('')
+  return chars.join("");
 }
 
-export function wordBy(predicate: (grapheme: P.Grapheme) => boolean): Parser<string> {
-  return P.map(P.oneOrMore(P.satisfy(predicate)), join)
+export function wordBy(
+  predicate: (grapheme: P.Grapheme) => boolean,
+): Parser<string> {
+  return P.map(P.oneOrMore(P.satisfy(predicate)), join);
 }
 
 export function isWhitespace(grapheme: P.Grapheme): boolean {

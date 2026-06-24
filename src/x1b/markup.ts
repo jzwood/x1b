@@ -75,4 +75,6 @@ const parseText: Parser<string> = wordBy((c) => c !== "<");
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
-export const parseML: Parser<TML> = zeroOrMore(oneOf<Node>(parseElem, parseText));
+export const parseML: Parser<TML> = zeroOrMore(
+  oneOf<Node>(parseElem, parseText),
+);
