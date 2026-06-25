@@ -7,6 +7,8 @@ export const hideCursor = esc("[?25l");
 export const moveCursorTo00 = esc("[H");
 export const moveCursorTo = (x: number, y: number) => esc(`[${~~x};${~~y}H`);
 export const clearScreen = esc("[2J");
+export const enableMouseEventReporting = esc("[?1002h");
+export const disableMouseEventReporting = esc("[?1002l");
 
 const reportCursorPos = esc("[6n");
 const saveCursorPos = esc("[s");

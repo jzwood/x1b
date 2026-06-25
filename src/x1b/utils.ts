@@ -21,3 +21,7 @@ export function cmd(...codes: string[]) {
 export function eq(buf1: Buffer, buf2: Buffer) {
   return Buffer.compare(buf1, buf2) === 0;
 }
+
+export function range(n: number, f: string | number = 0) {
+  return Array(n).fill(f);
+}

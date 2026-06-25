@@ -24,19 +24,19 @@ enum TagName {
   Cursor = "cursor",
 }
 
-interface Attribute {
+export interface Attribute {
   key: string;
   value: string;
 }
 
-interface Element {
+export interface Element {
   tag: TagName;
   attrs: Attribute[];
   children: TML;
 }
 
-type Node = string | Element;
-type TML = Node[];
+export type Node = string | Element;
+export type TML = Node[];
 
 const parseAttrKey: Parser<string> = wordBy((grapheme) =>
   (/^[a-z-]$/).test(grapheme)

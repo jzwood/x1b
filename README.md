@@ -27,7 +27,7 @@ Tags:
 Global Attributes:
 
 ```
-flow="auto" | "row" | "column"
+flow="auto" | "column"
 default: flow="auto"
 
 border="solid" | "none"
