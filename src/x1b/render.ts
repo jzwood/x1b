@@ -1,7 +1,19 @@
-import { TML } from "./markup.ts";
+import { TML, Node } from "./markup.ts";
 import { range } from "./utils.ts";
 
-function render(ast: TML) {
+//function isLeaf(node: Node): boolean {
+  //return typeof node === 'string'
+//}
+
+function renderML(ast: TML) {
+  return ast.reduce((body, node) => {
+    renderNode
+  })
+}
+
+function renderNode(node: Node) { // }, width: number, height: number) {
+  if (typeof node === 'string') return node
+  return renderML(node.children)
 }
 
 const N = "─";
@@ -14,8 +26,7 @@ const W = "│";
 const NW = "┌";
 
 export function border(text: string) {
-  const lines = text.trim().split("\n");
-
+  const lines = text.split("\n");
   const width = lines.reduce(
     (max, line) => line.length > max ? line.length : max,
     0,

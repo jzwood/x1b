@@ -20,18 +20,22 @@ Tags:
 <u></u>
 <b></b>
 <s></s>
-<pre></pre>
 <cursor />
 ```
 
 Global Attributes:
 
 ```
-flow="auto" | "column"
-default: flow="auto"
+id="<alphanumeric>"
+
+flow="wrap" | "masonry" | "column"
+default: flow="wrap"
+
+aspect-ratio="<width>:<height>"
 
 border="solid" | "none"
-default: border="solid"
+default: box.border="solid"
+default: [iubs].border="none"
 
 border-color="<hex>"
 default: border-color="#4f2b84"

@@ -14,7 +14,11 @@ Deno.test(function wordTest() {
     P.word("CAT")("CATMAN", P.CURSOR),
     {
       ok: true,
-      value: { result: "CAT", remainder: "MAN", cursor: { row: 0, col: 3, total: 3 } },
+      value: {
+        result: "CAT",
+        remainder: "MAN",
+        cursor: { row: 0, col: 3, total: 3 },
+      },
     },
   );
 });

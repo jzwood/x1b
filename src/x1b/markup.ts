@@ -20,7 +20,6 @@ enum TagName {
   Underline = "u",
   Bold = "b",
   Strike = "s",
-  Preformatted = "pre",
   Cursor = "cursor",
 }
 

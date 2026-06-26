@@ -1,0 +1,88 @@
+
+
+
+
+AAA
+AAA
+AAA
+
+BBBBBBB
+BBBBBBB
+
+CCCCCC
+CCCCCC
+CCCCCC
+CCCCCC
+
+
+AAA BBBBBBB CCCCCC
+AAA BBBBBBB CCCCCC
+AAA         CCCCCC
+            CCCCCC
+
+1.
+
+AAA BBBBBBB CCCCCC
+AAA BBBBBBB CCCCCC
+AAA BBBBBBB CCCCCC
+AAA BBBBBBB CCCCCC
+
+2.
+
+
+AAA BBBBBBB
+AAA BBBBBBB
+AAA BBBBBBB
+
+CCCCCCCCCCC
+CCCCCCCCCCC
+CCCCCCCCCCC
+CCCCCCCCCCC
+
+INSIGHT:
+I initially thought I could recursive perform the layout but rendering leaf, then leaf parent, etc all the way up.
+However, I now think this approach is flawed. I think I should perform a top down "optimistic" layout LEFT-TO-RIGHT, that checks for out of bound checks, and recursively re-flows last element then checks again.
+
+HMMM perhaps a more elegant way to reframe is that you stringify child[n] and get its dimensions. You check if there's space on current line for child. If so, render, otherwise render to line+1 then mover to child[n+1].
+
+This approach with examples:
+
+ideal layout start:
+
+AAA BBB CCC DDD EEE
+AAA BBB CCC DDD EEE
+
+since no out of bounds we're done
+
+if screen is smaller, the most compact we can do the layout is:
+
+AAA
+AAA
+BBB
+BBB
+CCC
+CCC
+DDD
+DDD
+EEE
+EEE
+
+with intermediate version looking like
+
+AAA BBB CCC
+AAA BBB CCC
+DDD EEE
+DDD EEE
+
+flow="columnar" simply jumpst to the most aggressive form of "wrap" flow
+
+In situations where the box is bigger than width there are a few options. most extreme is to simply trunctate content. less extreme we can brek up paragraphs
+
+
+INVARIANCES
+
+this approach relies on every node having canonical dimensions. which implies that reflowing happens only at the top level i.e. reflow isn't happening recursively. If we introduced a max-width to elements we could start doing recursive reflow but I honestly don't like that -- I want the knobs for twiddling with layout to be as minimal as possible. A user can simulate max width my making sure each line of text is shorter than max-width. :shrug:
+
+
+ALGO:
+
