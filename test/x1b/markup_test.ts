@@ -12,5 +12,11 @@ const input: string = `<box>
 
 const result1 = parseML(input, CURSOR);
 const result2 = parseML("<box>hello <b></b><u></u>world</box>", CURSOR);
+const result3 = parseML(`<box border="solid">
+  hello <b font-color="#ffff00">outside</b>!
+  Look ma, no <u>hands</u>.
+</box>
+`, CURSOR)
 console.log(JSON.stringify(result1, null, 2));
 console.log(JSON.stringify(result2, null, 2));
+console.log(JSON.stringify(result3));

@@ -83,6 +83,13 @@ INVARIANCES
 
 this approach relies on every node having canonical dimensions. which implies that reflowing happens only at the top level i.e. reflow isn't happening recursively. If we introduced a max-width to elements we could start doing recursive reflow but I honestly don't like that -- I want the knobs for twiddling with layout to be as minimal as possible. A user can simulate max width my making sure each line of text is shorter than max-width. :shrug:
 
-
 ALGO:
+- get MAX_WIDTH
+- keep track of X OFFSET and Y OFFSET
 
+1. eval child[n] and get text block and its dimensions
+  1.1 every subchild of child[n] knows about MAX_WIDTH and will truncate content at MAX_WIDTH boundary if neccessary
+2. check if there's space on current line for child.
+  2.1. if so, add to row and update offsets
+  2.2. if not, add to row+1 and update offsets.
+3. move to child[n+1]
