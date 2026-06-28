@@ -25,3 +25,11 @@ export function eq(buf1: Buffer, buf2: Buffer) {
 export function range<T>(n: number, f: T | number = 0) {
   return Array(n).fill(f);
 }
+
+export function maxBy<T>(arr: T[], fn: (x: T) => number): number {
+  return arr.reduce((acc, x) => Math.max(acc, fn(x)), 0);
+}
+
+export function sumBy<T>(arr: T[], fn: (x: T) => number): number {
+  return arr.reduce((acc, x) => acc + fn(x), 0);
+}

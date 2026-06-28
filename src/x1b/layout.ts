@@ -1,5 +1,5 @@
 import { Node, TML } from "./markup.ts";
-import { range } from "./utils.ts";
+import { maxBy, range, sumBy } from "./utils.ts";
 
 //function isLeaf(node: Node): boolean {
 //return typeof node === 'string'
@@ -20,28 +20,29 @@ const SW = "└";
 const W = "│";
 const NW = "┌";
 
-export function border(text: string): Block {
-  const lines = text.split("\n");
-  const width = lines.reduce(
-    (max, line) => line.length > max ? line.length : max,
-    0,
-  );
-  const north = NW + range(width, N).join("") + NE;
-  const south = SW + range(width, S).join("") + SE;
-
-  const content = [
-    north,
-    ...lines.map((line) => W + line.padEnd(width) + E),
-    south,
-  ]
-    .join("\n");
-  return { width: width + 2, height: lines.length + 2, content };
-}
-
 interface Block {
   width: number;
   height: number;
-  content: string;
+  content: string[][];
+}
+
+export function border(text: string): Block {
+  const lines = text.split("\n");
+  const width = maxBy(lines, (line) => line.length);
+  const north: string[] = [NW, ...range(width, N), NE];
+  const south: string[] = [SW, ...range(width, S), SE];
+
+  const content = [
+    north,
+    ...lines.map((line) => [W, ...line.padEnd(width), E]),
+    south,
+  ];
+
+  return {
+    width: content[0]?.length ?? 0,
+    height: content.length,
+    content,
+  };
 }
 
 function renderNode(node: Node, maxWidth: number): Block {
@@ -51,7 +52,7 @@ function renderNode(node: Node, maxWidth: number): Block {
 }
 
 function renderML(ast: TML, maxWidth: number): Block {
-  const blocks: Block[][] = [];
+  const blocks: Block[][] = [[]];
   const layout = ast.reduce(({ x, r, blocks }, node) => {
     const block: Block = renderNode(node, maxWidth);
     if (block.width > (maxWidth - x)) {
@@ -63,23 +64,25 @@ function renderML(ast: TML, maxWidth: number): Block {
     }
   }, { x: 0, r: 0, blocks });
   if (blocks[0].length === 0) blocks.shift();
-  //return renderBlocks(layout.blocks);
   return renderBlockColumn(layout.blocks.map(renderBlockRow));
 }
 
 function renderBlockRow(blocks: Block[]): Block {
-  //const height: number = blocks.reduce((height, block) => Math.max(block.height, height), 0);
-  //const width: number = blocks.reduce((width, block) => width + block.width, 0);
-  const { height, width } = blocks.reduce(
-    (acc, block) => ({
-      height: Math.max(acc.height, block.height),
-      width: acc.width + block.width,
-    }),
-    { height: 0, width: 0 },
-  );
+  const height: number = maxBy(blocks, (block) => block.height);
+  const width: number = sumBy(blocks, (block) => block.width);
+  const contents: string[][][] = blocks.map((block) => {
+    const pad: number = height - block.height;
+    const content: string[][] = pad > 0
+      ? [...block.content, ...range(pad).map(() => range(width, ""))]
+      : block.content;
+    return content;
+  });
 
-  return blocks.reduce((row, block) => {
-  }, { width: 0, height: 0, content: "" });
+  // TODO: change content to be string[] -- we can store each line as a string instead of charlist
+  // potentially we can pull in the logic of contents into here. instead of doing pd we just check if the line is at h and if not return range(width, "")??
+  const content = range(height).map((_, h) => contents.flatMap((content) => content[h]))
+
+  return { height, width, content };
 }
 
 function renderBlockColumn(blocks: Block[]): Block {}
