@@ -2,6 +2,7 @@ import {
   CURSOR,
   Cursor,
   left,
+  map,
   map2,
   oneOf,
   Parser,
@@ -70,7 +71,7 @@ function parseCustomElem(tag: TagName): Parser<Element> {
   };
 }
 
-const parseText: Parser<string> = wordBy((c) => c !== "<");
+const parseText: Parser<string> = map(wordBy((c) => c !== "<"), (word) => word.trim());
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );

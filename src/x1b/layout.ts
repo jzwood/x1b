@@ -1,5 +1,7 @@
 import { Node, TML } from "./markup.ts";
 import { maxBy, range, sumBy } from "./utils.ts";
+import { parseML } from "./markup.ts";
+import { CURSOR } from "../parser/index.ts";
 
 const N = "─";
 const NE = "┐";
@@ -36,9 +38,15 @@ export function border(text: string): Block {
 }
 
 function renderNode(node: Node, maxWidth: number): Block {
-  return typeof node === "string"
-    ? border(node)
-    : renderML(node.children, maxWidth);
+  if (typeof node === "string") {
+    if (node.length === 0) {
+      return {width: 0, height: 0, content: []}
+    } else {
+      return border(node)
+    }
+  } else {
+    return renderML(node.children, maxWidth);
+  }
 }
 
 function renderML(ast: TML, maxWidth: number): Block {
@@ -62,7 +70,7 @@ function renderBlockRow(blocks: Block[]): Block {
   const width: number = sumBy(blocks, (block) => block.width);
   const content = range(height).map((_, h) =>
     blocks.flatMap(({ width, height, content }) =>
-      h >= height ? range(width, "").join("") : content[h]
+      h >= height ? range(width + 1, "").join(" ") : content[h]
     ).join("")
   );
 
@@ -72,8 +80,8 @@ function renderBlockRow(blocks: Block[]): Block {
 function renderBlockColumn(blocks: Block[]): Block {
   const height: number = sumBy(blocks, (block) => block.height);
   const width: number = maxBy(blocks, (block) => block.width);
-  const content = blocks.flatMap(({content}) => content)
-  return { height, width, content}
+  const content = blocks.flatMap(({ content }) => content);
+  return { height, width, content };
 }
 
 /*
@@ -87,3 +95,14 @@ function renderBlockColumn(blocks: Block[]): Block {
   2.2. if not, add to row+1 and update offsets.
 3. move to child[n+1]
 */
+
+const input: string = `<box>
+  <b flow="auto" bg-color="#34eb0a">header</b>
+  hello world
+  <box>my name is <s font-color="#ddd">jake</s> chipmunk</box>
+</box>
+`;
+
+const result = parseML(input, CURSOR);
+const ml = result.value.result;
+console.log(renderML(ml, 30));
