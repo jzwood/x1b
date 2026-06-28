@@ -21,9 +21,9 @@ interface Block {
 export function border(text: string): Block {
   const lines = text.split("\n");
   const width = maxBy(lines, (line) => line.length);
+
   const north: string = [NW, ...range(width, N), NE].join("");
   const south: string = [SW, ...range(width, S), SE].join("");
-
   const content = [
     north,
     ...lines.map((line) => [W, ...line.padEnd(width), E].join("")),
@@ -37,16 +37,28 @@ export function border(text: string): Block {
   };
 }
 
+export function renderText(text: string, _maxWidth: number): Block {
+  const lines = text.trim().split("\n");
+  const width = maxBy(lines, (line) => line.length);
+  const content = lines.map((line) => line.padEnd(width))
+
+  return {
+    width,
+    height: content.length,
+    content,
+  };
+}
+
 function renderNode(node: Node, maxWidth: number): Block {
-  if (typeof node === "string") {
-    if (node.length === 0) {
-      return {width: 0, height: 0, content: []}
-    } else {
-      return border(node)
-    }
-  } else {
-    return renderML(node.children, maxWidth);
-  }
+  if (typeof node === "string") return renderText(node, maxWidth)
+
+  const block = renderML(node.children, maxWidth)
+  const north: string = [NW, ...range(block.width, N), NE].join("");
+  const south: string = [SW, ...range(block.width, S), SE].join("");
+  block.content = [north, ...block.content.map((line) => W + line.padEnd(block.width) + E), south]
+  block.width += 2
+  block.height += 2
+  return block
 }
 
 function renderML(ast: TML, maxWidth: number): Block {
@@ -55,7 +67,7 @@ function renderML(ast: TML, maxWidth: number): Block {
     const block: Block = renderNode(node, maxWidth);
     if (block.width > (maxWidth - x)) {
       blocks.push([block]);
-      return { x: 0, r: r + 0, blocks };
+      return { x: 0, r: r + 1, blocks };
     } else {
       blocks[r].push(block);
       return { x: x + block.width, r, blocks };
@@ -95,14 +107,19 @@ function renderBlockColumn(blocks: Block[]): Block {
   2.2. if not, add to row+1 and update offsets.
 3. move to child[n+1]
 */
+let input: string = `<box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>`;
 
-const input: string = `<box>
+let result = parseML(input, CURSOR);
+let ml = result.value.result;
+console.log(renderML(ml, 30));
+
+input = `<box>
   <b flow="auto" bg-color="#34eb0a">header</b>
   hello world
   <box>my name is <s font-color="#ddd">jake</s> chipmunk</box>
 </box>
 `;
 
-const result = parseML(input, CURSOR);
-const ml = result.value.result;
+result = parseML(input, CURSOR);
+ml = result.value.result;
 console.log(renderML(ml, 30));
