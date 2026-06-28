@@ -1,16 +1,6 @@
 import { Node, TML } from "./markup.ts";
 import { maxBy, range, sumBy } from "./utils.ts";
 
-//function isLeaf(node: Node): boolean {
-//return typeof node === 'string'
-//}
-
-//function renderML(ast: TML) {
-//return ast.reduce((body, node) => {
-//renderNode
-//})
-//}
-
 const N = "─";
 const NE = "┐";
 const E = "│";
@@ -23,18 +13,18 @@ const NW = "┌";
 interface Block {
   width: number;
   height: number;
-  content: string[][];
+  content: string[];
 }
 
 export function border(text: string): Block {
   const lines = text.split("\n");
   const width = maxBy(lines, (line) => line.length);
-  const north: string[] = [NW, ...range(width, N), NE];
-  const south: string[] = [SW, ...range(width, S), SE];
+  const north: string = [NW, ...range(width, N), NE].join("");
+  const south: string = [SW, ...range(width, S), SE].join("");
 
   const content = [
     north,
-    ...lines.map((line) => [W, ...line.padEnd(width), E]),
+    ...lines.map((line) => [W, ...line.padEnd(width), E].join("")),
     south,
   ];
 
@@ -70,22 +60,21 @@ function renderML(ast: TML, maxWidth: number): Block {
 function renderBlockRow(blocks: Block[]): Block {
   const height: number = maxBy(blocks, (block) => block.height);
   const width: number = sumBy(blocks, (block) => block.width);
-  const contents: string[][][] = blocks.map((block) => {
-    const pad: number = height - block.height;
-    const content: string[][] = pad > 0
-      ? [...block.content, ...range(pad).map(() => range(width, ""))]
-      : block.content;
-    return content;
-  });
-
-  // TODO: change content to be string[] -- we can store each line as a string instead of charlist
-  // potentially we can pull in the logic of contents into here. instead of doing pd we just check if the line is at h and if not return range(width, "")??
-  const content = range(height).map((_, h) => contents.flatMap((content) => content[h]))
+  const content = range(height).map((_, h) =>
+    blocks.flatMap(({ width, height, content }) =>
+      h >= height ? range(width, "").join("") : content[h]
+    ).join("")
+  );
 
   return { height, width, content };
 }
 
-function renderBlockColumn(blocks: Block[]): Block {}
+function renderBlockColumn(blocks: Block[]): Block {
+  const height: number = sumBy(blocks, (block) => block.height);
+  const width: number = maxBy(blocks, (block) => block.width);
+  const content = blocks.flatMap(({content}) => content)
+  return { height, width, content}
+}
 
 /*
 - get MAX_WIDTH
