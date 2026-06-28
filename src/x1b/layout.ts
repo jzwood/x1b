@@ -40,7 +40,7 @@ export function border(text: string): Block {
 export function renderText(text: string, _maxWidth: number): Block {
   const lines = text.trim().split("\n");
   const width = maxBy(lines, (line) => line.length);
-  const content = lines.map((line) => line.padEnd(width))
+  const content = lines.map((line) => line.padEnd(width));
 
   return {
     width,
@@ -50,15 +50,19 @@ export function renderText(text: string, _maxWidth: number): Block {
 }
 
 function renderNode(node: Node, maxWidth: number): Block {
-  if (typeof node === "string") return renderText(node, maxWidth)
+  if (typeof node === "string") return renderText(node, maxWidth);
 
-  const block = renderML(node.children, maxWidth)
+  const block = renderML(node.children, maxWidth);
   const north: string = [NW, ...range(block.width, N), NE].join("");
   const south: string = [SW, ...range(block.width, S), SE].join("");
-  block.content = [north, ...block.content.map((line) => W + line.padEnd(block.width) + E), south]
-  block.width += 2
-  block.height += 2
-  return block
+  block.content = [
+    north,
+    ...block.content.map((line) => W + line.padEnd(block.width) + E),
+    south,
+  ];
+  block.width += 2;
+  block.height += 2;
+  return block;
 }
 
 function renderML(ast: TML, maxWidth: number): Block {
@@ -107,19 +111,21 @@ function renderBlockColumn(blocks: Block[]): Block {
   2.2. if not, add to row+1 and update offsets.
 3. move to child[n+1]
 */
-let input: string = `<box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>`;
+let input: string =
+  `<box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>`;
 
 let result = parseML(input, CURSOR);
 let ml = result.value.result;
-console.log(renderML(ml, 30));
+console.log(renderML(ml, 30).content.join("\n"));
 
 input = `<box>
-  <b flow="auto" bg-color="#34eb0a">header</b>
-  hello world
-  <box>my name is <s font-color="#ddd">jake</s> chipmunk</box>
+  header:
+  <b flow="auto" bg-color="#34eb0a">hello world</b>
+  <box>my name is <s font-color="#ddd">jake</s></box>
+  <box>I like <box>chipmunks</box></box>
 </box>
 `;
 
 result = parseML(input, CURSOR);
 ml = result.value.result;
-console.log(renderML(ml, 30));
+console.log(renderML(ml, 30).content.join("\n"));

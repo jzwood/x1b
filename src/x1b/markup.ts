@@ -71,7 +71,10 @@ function parseCustomElem(tag: TagName): Parser<Element> {
   };
 }
 
-const parseText: Parser<string> = map(wordBy((c) => c !== "<"), (word) => word.trim());
+const parseText: Parser<string> = map(
+  wordBy((c) => c !== "<"),
+  (word) => word.trim(),
+);
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
