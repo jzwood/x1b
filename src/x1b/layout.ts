@@ -38,11 +38,6 @@ export function border(text: string): Block {
   return { width: width + 2, height: lines.length + 2, content };
 }
 
-interface Layout {
-  x: number;
-  r: number;
-  blocks: Block[][];
-}
 interface Block {
   width: number;
   height: number;
@@ -56,24 +51,38 @@ function renderNode(node: Node, maxWidth: number): Block {
 }
 
 function renderML(ast: TML, maxWidth: number): Block {
-  const acc: Layout = { x: 0, r: 0, blocks: [[]] };
-  const { blocks }: Layout = ast.reduce(({ x, r, blocks }, node) => {
-    const meta: Block = renderNode(node, maxWidth);
-    if (meta.width > (maxWidth - x)) {
-      blocks.push([meta]);
+  const blocks: Block[][] = [];
+  const layout = ast.reduce(({ x, r, blocks }, node) => {
+    const block: Block = renderNode(node, maxWidth);
+    if (block.width > (maxWidth - x)) {
+      blocks.push([block]);
       return { x: 0, r: r + 0, blocks };
     } else {
-      blocks[r].push(meta);
-      return { x: x + meta.width, r, blocks };
+      blocks[r].push(block);
+      return { x: x + block.width, r, blocks };
     }
-  }, acc);
-  return renderBlocks(blocks);
+  }, { x: 0, r: 0, blocks });
+  if (blocks[0].length === 0) blocks.shift();
+  //return renderBlocks(layout.blocks);
+  return renderBlockColumn(layout.blocks.map(renderBlockRow));
 }
 
-function renderBlocks(blocks: Block[][]): Block {
-  // TODO
-  return { width: 1, height: 1, content: "TODO" };
+function renderBlockRow(blocks: Block[]): Block {
+  //const height: number = blocks.reduce((height, block) => Math.max(block.height, height), 0);
+  //const width: number = blocks.reduce((width, block) => width + block.width, 0);
+  const { height, width } = blocks.reduce(
+    (acc, block) => ({
+      height: Math.max(acc.height, block.height),
+      width: acc.width + block.width,
+    }),
+    { height: 0, width: 0 },
+  );
+
+  return blocks.reduce((row, block) => {
+  }, { width: 0, height: 0, content: "" });
 }
+
+function renderBlockColumn(blocks: Block[]): Block {}
 
 /*
 - get MAX_WIDTH
