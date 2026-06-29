@@ -6,11 +6,12 @@ import { USAGE } from "./const.ts";
 import { onStdout } from "./stdout.ts";
 import { onStdin } from "./stdin.ts";
 import {
-  clearScreen,
-  enableAlternateScreenBuffer,
-  hideCursor,
-  moveCursorTo00,
+  CLEAR_SCREEN,
+  ENABLE_ALT_SCREEN_BUFFER,
+  HIDE_CURSOR,
+  SET_CURSOR_POS_00,
 } from "./escape_codes.ts";
+import { cmd } from "./utils.ts";
 
 export async function main() {
   const [command, ...args] = Deno.args;
@@ -26,10 +27,12 @@ export async function main() {
   });
   program.stdout.on("data", onStdout);
 
-  enableAlternateScreenBuffer();
-  hideCursor();
-  moveCursorTo00();
-  clearScreen();
+  cmd(
+    ENABLE_ALT_SCREEN_BUFFER,
+    HIDE_CURSOR,
+    SET_CURSOR_POS_00,
+    CLEAR_SCREEN,
+  );
 
   const [_code] = await once(program, "close");
 }

@@ -28,7 +28,7 @@ interface Block {
   content: string[];
 }
 
-export function border(text: string): Block {
+function border(text: string): Block {
   const lines = text.split("\n");
   const width = maxBy(lines, (line) => line.length);
 
@@ -47,7 +47,7 @@ export function border(text: string): Block {
   };
 }
 
-export function renderText(text: string, maxWidth: number): Block {
+function renderText(text: string, maxWidth: number): Block {
   const lines = text.trim().split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
   const content = lines.flatMap((line) =>
@@ -77,22 +77,6 @@ function renderNode(node: Node, maxWidth: number): Block {
   return block;
 }
 
-function renderML(ast: TML, maxWidth: number): Block {
-  const blocks: Block[][] = [[]];
-  const layout = ast.reduce(({ x, r, blocks }, node) => {
-    const block: Block = renderNode(node, maxWidth);
-    if (block.width > (maxWidth - x)) {
-      blocks.push([block]);
-      return { x: block.width, r: r + 1, blocks };
-    } else {
-      blocks[r].push(block);
-      return { x: x + block.width, r, blocks };
-    }
-  }, { x: 0, r: 0, blocks });
-  if (blocks[0].length === 0) blocks.shift();
-  return renderBlockColumn(layout.blocks.map(renderBlockRow));
-}
-
 function renderBlockRow(blocks: Block[]): Block {
   const height: number = maxBy(blocks, (block) => block.height);
   const width: number = sumBy(blocks, (block) => block.width);
@@ -111,33 +95,19 @@ function renderBlockColumn(blocks: Block[]): Block {
   const content = blocks.flatMap(({ content }) => content);
   return { height, width, content };
 }
-let input: string = `<box>
-    <box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>
-  </box>`;
 
-let result = parseML(input, CURSOR);
-let ml = result.value.result;
-console.log(renderML(ml, 45).content.join("\n"));
-
-input = `<box>
-  header:
-  <b flow="auto" bg-color="#34eb0a">hello world</b>
-  <box>my name is <s font-color="#ddd">jake</s></box>
-  <box>I like <box>chipmunks</box></box>
-</box>
-`;
-
-result = parseML(input, CURSOR);
-ml = result.value.result;
-console.log(renderML(ml, 40).content.join("\n"));
-
-input = `<box>
-hahah it really works
-<box>very long no good dirty rotten input -- really quite too long</box>
-<box>but also</box><box>is small</box>
-</box>
-`;
-
-result = parseML(input, CURSOR);
-ml = result.value.result;
-console.log(renderML(ml, 20).content.join("\n"));
+export function renderML(ast: TML, maxWidth: number): Block {
+  const blocks: Block[][] = [[]];
+  const layout = ast.reduce(({ x, r, blocks }, node) => {
+    const block: Block = renderNode(node, maxWidth);
+    if (block.width > (maxWidth - x)) {
+      blocks.push([block]);
+      return { x: block.width, r: r + 1, blocks };
+    } else {
+      blocks[r].push(block);
+      return { x: x + block.width, r, blocks };
+    }
+  }, { x: 0, r: 0, blocks });
+  if (blocks[0].length === 0) blocks.shift();
+  return renderBlockColumn(layout.blocks.map(renderBlockRow));
+}
