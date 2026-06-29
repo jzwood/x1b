@@ -83,7 +83,7 @@ function renderML(ast: TML, maxWidth: number): Block {
     const block: Block = renderNode(node, maxWidth);
     if (block.width > (maxWidth - x)) {
       blocks.push([block]);
-      return { x: 0, r: r + 1, blocks };
+      return { x: block.width, r: r + 1, blocks };
     } else {
       blocks[r].push(block);
       return { x: x + block.width, r, blocks };
@@ -134,7 +134,7 @@ console.log(renderML(ml, 40).content.join("\n"));
 input = `<box>
 hahah it really works
 <box>very long no good dirty rotten input -- really quite too long</box>
-<box>but <box>also</box> </box>
+<box>but also</box><box>is small</box>
 </box>
 `;
 
