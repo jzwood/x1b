@@ -1,7 +1,17 @@
 import { Node, TML } from "./markup.ts";
-import { maxBy, range, sumBy } from "./utils.ts";
+import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
 import { parseML } from "./markup.ts";
 import { CURSOR } from "../parser/index.ts";
+
+/*
+  BASIC ALGORITHM
+   1. eval child[n] and get text block and its dimensions
+   1.1 every subchild of child[n] knows about MAX_WIDTH and will truncate content at MAX_WIDTH boundary if neccessary
+   2. check if there's space on current line for child.
+   2.1. if so, add to row and update offsets
+   2.2. if not, add to row+1 and update offsets.
+   3. move to child[n+1]
+ */
 
 const N = "─";
 const NE = "┐";
@@ -37,10 +47,12 @@ export function border(text: string): Block {
   };
 }
 
-export function renderText(text: string, _maxWidth: number): Block {
+export function renderText(text: string, maxWidth: number): Block {
   const lines = text.trim().split("\n");
-  const width = maxBy(lines, (line) => line.length);
-  const content = lines.map((line) => line.padEnd(width));
+  const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
+  const content = lines.flatMap((line) =>
+    chunkEvery(line, width).map((line) => line.padEnd(width))
+  );
 
   return {
     width,
@@ -99,24 +111,13 @@ function renderBlockColumn(blocks: Block[]): Block {
   const content = blocks.flatMap(({ content }) => content);
   return { height, width, content };
 }
-
-/*
-- get MAX_WIDTH
-- keep track of X OFFSET and Y OFFSET
-
-1. eval child[n] and get text block and its dimensions
-  1.1 every subchild of child[n] knows about MAX_WIDTH and will truncate content at MAX_WIDTH boundary if neccessary
-2. check if there's space on current line for child.
-  2.1. if so, add to row and update offsets
-  2.2. if not, add to row+1 and update offsets.
-3. move to child[n+1]
-*/
-let input: string =
-  `<box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>`;
+let input: string = `<box>
+    <box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>
+  </box>`;
 
 let result = parseML(input, CURSOR);
 let ml = result.value.result;
-console.log(renderML(ml, 30).content.join("\n"));
+console.log(renderML(ml, 45).content.join("\n"));
 
 input = `<box>
   header:
@@ -128,4 +129,15 @@ input = `<box>
 
 result = parseML(input, CURSOR);
 ml = result.value.result;
-console.log(renderML(ml, 30).content.join("\n"));
+console.log(renderML(ml, 40).content.join("\n"));
+
+input = `<box>
+hahah it really works
+<box>very long no good dirty rotten input -- really quite too long</box>
+<box>but <box>also</box> </box>
+</box>
+`;
+
+result = parseML(input, CURSOR);
+ml = result.value.result;
+console.log(renderML(ml, 20).content.join("\n"));

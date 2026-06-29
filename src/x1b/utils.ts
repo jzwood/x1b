@@ -33,3 +33,21 @@ export function maxBy<T>(arr: T[], fn: (x: T) => number): number {
 export function sumBy<T>(arr: T[], fn: (x: T) => number): number {
   return arr.reduce((acc, x) => acc + fn(x), 0);
 }
+
+//export function chunkEvery<T>(arr: T[], count: number, acc: T[][] = []): T[][] {
+//if (arr.length === 0) return acc
+//const head: T[] = arr.slice(0, count)
+//const tail: T[] = arr.slice(count)
+//return chunkEvery(tail, count, [...acc, head])
+//}
+
+export function chunkEvery(
+  str: string,
+  count: number,
+  acc: string[] = [],
+): string[] {
+  if (str.length === 0) return acc;
+  const head = str.slice(0, count);
+  const tail = str.slice(count);
+  return chunkEvery(tail, count, [...acc, head]);
+}
