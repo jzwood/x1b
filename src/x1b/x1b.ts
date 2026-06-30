@@ -62,7 +62,7 @@ export async function main() {
   });
   process.stdout.on("resize", () => {
     const { columns, rows } = Deno.consoleSize();
-    state.columns = columns;
+    state.columns = columns - 4;
     state.rows = rows;
     cmd(CLEAR_SCREEN);
     render();
