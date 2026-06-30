@@ -1,4 +1,4 @@
-import * as Result from "./result.ts";
+import * as Result from "../src/parser/result.ts";
 
 interface Cursor {
   line: number;
@@ -35,7 +35,7 @@ function satisfy(p: (a: string) => boolean): Parser<string> {
 // (<$>) :: f a -> (a -> b) -> f b
 function fmap<A, B>(parse: Parser<A>, fn: (result: A) => B): Parser<B> {
   return (input: string, cursor: Cursor) =>
-    Result.fmap(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
+    Result.map(parse(input, cursor), (ok: ParseOk<A>): ParseOk<B> => ({
       result: fn(ok.result),
       cursor: ok.cursor,
       remainder: ok.remainder,

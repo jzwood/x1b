@@ -54,3 +54,9 @@ FRAME:<box>5:36</box>
 FRAME:<box>5:35</box>
 FRAME:<box>5:34</box>
 ```
+
+### DEMO
+
+```
+deno run --allow-env --allow-run main.ts node snake.js
+```
