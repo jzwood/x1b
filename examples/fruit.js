@@ -1,5 +1,3 @@
-
-
 function repeat(n, c) {
   return Array(n).fill(c).join('');
 }

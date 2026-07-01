@@ -28,23 +28,18 @@ Global Attributes:
 ```
 id="<alphanumeric>"
 
-flow="wrap" | "masonry" | "column"
-default: flow="wrap"
+flow="wrap" | "column"
+  default: *.flow="wrap"
 
-aspect-ratio="<width>:<height>"
-
-border="solid" | "none"
-default: box.border="solid"
-default: [iubs].border="none"
+border="thin" | "solid" | "shaded" | "none"
+  default: box.border="thin"
+  default: *.border="none"
 
 border-color="<hex>"
-default: border-color="#4f2b84"
 
 bg-color="<hex>"
-default: bg-color="#16191F"
 
 font-color="<hex>"
-default: font-color="#D9D9D9"
 ```
 
 ### examples
@@ -53,6 +48,12 @@ default: font-color="#D9D9D9"
 FRAME:<box>5:36</box>
 FRAME:<box>5:35</box>
 FRAME:<box>5:34</box>
+```
+
+### Distribute
+```
+deno compile --allow-env --allow-run main.ts
+./x1b_deno node examples/fruit.js
 ```
 
 ### DEMO
