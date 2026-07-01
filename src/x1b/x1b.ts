@@ -7,14 +7,13 @@ import { onStdin } from "./stdin.ts";
 import { renderML } from "./layout.ts";
 import { parseML } from "./markup.ts";
 import { CURSOR } from "../parser/index.ts";
+import { getScreenSize } from './utils.ts'
 
 import {
   CLEAR_SCREEN,
-  DISABLE_ALT_SCREEN_BUFFER,
   ENABLE_ALT_SCREEN_BUFFER,
   HIDE_CURSOR,
   SET_CURSOR_POS_00,
-  SHOW_CURSOR,
 } from "./escape_codes.ts";
 import { cmd } from "./utils.ts";
 
@@ -27,8 +26,7 @@ export async function main() {
   const program = spawn(command, args);
   const state = {
     frame: "",
-    columns: 80,
-    rows: 24,
+    ...getScreenSize()
   };
 
   function render() {
@@ -36,12 +34,12 @@ export async function main() {
     if (!state.frame) return null;
 
     const result = parseML(state.frame, CURSOR);
-    if (result.ok) {
-      const frame = renderML(result.value.result, state.columns).content.join(
+    const frame = result.ok
+      ? renderML(result.value.result, state.columns).content.join(
         "\n",
-      );
-      process.stdout.write(frame);
-    }
+      )
+      : state.frame;
+    process.stdout.write(frame);
   }
 
   process.stdin.setRawMode(true);
@@ -61,9 +59,7 @@ export async function main() {
     render();
   });
   process.stdout.on("resize", () => {
-    const { columns, rows } = Deno.consoleSize();
-    state.columns = columns - 4;
-    state.rows = rows;
+    Object.assign(state, getScreenSize())
     cmd(CLEAR_SCREEN);
     render();
   });

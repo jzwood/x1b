@@ -10,6 +10,12 @@ export function cmd(...codes: string[]) {
   return process.stdin.write(codes.map(esc).join(""));
 }
 
+export function getScreenSize() {
+  const BUFF_COLS = 4
+  const { columns, rows } = Deno.consoleSize();
+  return { columns: columns - BUFF_COLS, rows }
+}
+
 export function eq(buf1: Buffer, buf2: Buffer) {
   return Buffer.compare(buf1, buf2) === 0;
 }
