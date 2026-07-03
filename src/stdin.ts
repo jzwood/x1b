@@ -22,6 +22,7 @@ export function onStdin(
   } else if (is(LEFT)) {
     program.stdin.write("LEFT");
   } else {
+    //console.log(chunk.slice(1).toString("utf8"));
     // DO NOTHING
   }
 }

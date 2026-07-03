@@ -1,10 +1,10 @@
 function repeat(n, c) {
-  return Array(n).fill(c).join('');
+  return Array(n).fill(c).join("");
 }
 
 function frame(tick) {
-return `<box>
-  BIG FRUIT SALE${repeat((tick % 3) + 1, '!')}
+  return `<box>
+  BIG FRUIT SALE${repeat((tick % 3) + 1, "!")}
   <box>
     <box>Abiu</box>
     <box>Açaí</box>
@@ -40,10 +40,10 @@ return `<box>
   <box>Mystery Box</box>
   <box>Cart</box>
 </box>
-`
+`;
 }
 
-let tick = 0
+let tick = 0;
 setInterval(() => {
   process.stdout.write(frame(tick++));
 }, 500);

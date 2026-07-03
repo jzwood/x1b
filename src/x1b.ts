@@ -6,12 +6,14 @@ import { USAGE } from "./const.ts";
 import { onStdin } from "./stdin.ts";
 import { renderML } from "./layout.ts";
 import { parseML } from "./markup.ts";
-import { CURSOR } from "../parser/index.ts";
-import { getScreenSize } from './utils.ts'
+import { CURSOR } from "./parser/index.ts";
+import { getScreenSize } from "./utils.ts";
 
 import {
   CLEAR_SCREEN,
   ENABLE_ALT_SCREEN_BUFFER,
+  ENABLE_SGR_MOUSE_MODE,
+  ENABLE_VT200_MOUSE_REPORTING,
   HIDE_CURSOR,
   SET_CURSOR_POS_00,
 } from "./escape_codes.ts";
@@ -26,7 +28,7 @@ export async function main() {
   const program = spawn(command, args);
   const state = {
     frame: "",
-    ...getScreenSize()
+    ...getScreenSize(),
   };
 
   function render() {
@@ -49,6 +51,8 @@ export async function main() {
     HIDE_CURSOR,
     SET_CURSOR_POS_00,
     CLEAR_SCREEN,
+    ENABLE_VT200_MOUSE_REPORTING,
+    ENABLE_SGR_MOUSE_MODE,
   );
 
   process.stdin.on("data", (buffer: Buffer) => {
@@ -59,7 +63,7 @@ export async function main() {
     render();
   });
   process.stdout.on("resize", () => {
-    Object.assign(state, getScreenSize())
+    Object.assign(state, getScreenSize());
     cmd(CLEAR_SCREEN);
     render();
   });

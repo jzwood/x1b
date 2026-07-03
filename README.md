@@ -1,14 +1,15 @@
-# x1b TUI
+# x1B
 
-A minimalist language agnostic TUI renderer
+_pronounced_: chib
+
+A minimalist language agnostic TUI library
 
 ## how it works
 
 - you write your TUI application in whatever language you want.
 - you manage your application state however you want.
-- to display your app write x1b markup to stdout and the x1b engine will handle
-  rendering.
-- to handle events like keypresses just listen to and read bytes from stdout.
+- stdout.write x1b markup and the x1b engine handles rendering.
+- read stdout for click, scroll, and key events
 
 ## x1b markup
 
@@ -50,10 +51,29 @@ FRAME:<box>5:35</box>
 FRAME:<box>5:34</box>
 ```
 
-### Distribute
+### API
+
+**incoming:**
+
 ```
-deno compile --allow-env --allow-run main.ts
-./x1b_deno node examples/fruit.js
+KEY:<keycode>
+CLICK:<element-id>
+```
+
+**outgoing:**
+
+```
+FRAME:<x1b-markup>
+RAW:<string>
+QUIT
+```
+
+### Distribute
+
+```
+deno compile --allow-env --allow-run --output=dist/x1b main.ts
+
+./x1b node examples/fruit.js
 ```
 
 ### DEMO

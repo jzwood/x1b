@@ -13,7 +13,7 @@ import {
   wordBy,
   wrap,
   zeroOrMore,
-} from "../parser/index.ts";
+} from "./parser/index.ts";
 
 enum TagName {
   Box = "box",
