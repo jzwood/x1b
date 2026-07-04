@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { CURSOR } from "../../src/parser/index.ts";
-import { parseML } from "../../src/x1b/markup.ts";
+import { parseML } from "../../src/markup.ts";
 
 //Deno.test(function wordTest() {});
 const input: string = `<box>

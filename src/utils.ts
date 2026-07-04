@@ -1,9 +1,8 @@
 import process from "node:process";
 import { Buffer } from "node:buffer";
-import { ESC } from "./const.ts";
 
 export function esc(code: string): string {
-  return ESC + code;
+  return "\x1b" + code;
 }
 
 export function cmd(...codes: string[]) {
@@ -16,8 +15,8 @@ export function getScreenSize() {
   return { columns: columns - BUFF_COLS, rows };
 }
 
-export function eq(buf1: Buffer, buf2: Buffer) {
-  return Buffer.compare(buf1, buf2) === 0;
+export function equal(b1: Buffer, b2: Buffer) {
+  return Buffer.compare(b1, b2) === 0;
 }
 
 export function range<T>(n: number, f: T | number = 0) {

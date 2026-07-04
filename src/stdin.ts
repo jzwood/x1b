@@ -1,28 +1,36 @@
-import { ChildProcessWithoutNullStreams } from "node:child_process";
-import process from "node:process";
-import { Buffer } from "node:buffer";
-import { DOWN, LEFT, QUIT, RIGHT, UP } from "./const.ts";
-import { cmd, eq } from "./utils.ts";
-import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
+const ESC_DEC = 27;
+const LEFT_CLICK = "0";
+const SCROLL_DOWN = "65";
+const SCROLL_UP = "64";
+const CLICK_DOWN = "M";
+const CLICK_UP = "m";
 
-export function onStdin(
-  program: ChildProcessWithoutNullStreams,
-  chunk: Buffer,
-) {
-  const is = eq.bind(null, chunk);
-  if (is(QUIT)) {
-    cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
-    process.exit(0);
-  } else if (is(UP)) {
-    program.stdin.write("UP");
-  } else if (is(RIGHT)) {
-    program.stdin.write("RIGHT");
-  } else if (is(DOWN)) {
-    program.stdin.write("DOWN");
-  } else if (is(LEFT)) {
-    program.stdin.write("LEFT");
-  } else {
-    //console.log(chunk.slice(1).toString("utf8"));
-    // DO NOTHING
+export type OnStdin =
+  | { stdin: string }
+  | { noop: true };
+
+export function handleStdin(buffer: Buffer): OnStdin {
+  if (buffer[0] !== ESC_DEC) return { stdin: "KEY:" + buffer.toString("utf8") };
+
+  const code = buffer.subarray(1).toString("utf8");
+  if (code === "[A") return { stdin: "ARROW:UP" };
+  if (code === "[C") return { stdin: "ARROW:RIGHT" };
+  if (code === "[B") return { stdin: "ARROW:DOWN" };
+  if (code === "[D") return { stdin: "ARROW:LEFT" };
+
+  const match = code.match(/^\[\<(\d+);(\d+);(\d+)([mM])$/);
+  if (match == null) return { noop: true };
+
+  const [_, button, col, row, m] = match;
+  if (button === LEFT_CLICK && m === CLICK_UP) {
+    return { noop: true };
+  } else if (button === LEFT_CLICK && m === CLICK_DOWN) {
+    return { noop: true };
+  } else if (button === SCROLL_DOWN && m === CLICK_DOWN) {
+    return { noop: true };
+  } else if (button === SCROLL_UP && m === CLICK_DOWN) {
+    return { noop: true };
   }
+
+  return { noop: true };
 }

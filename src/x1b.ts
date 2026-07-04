@@ -1,13 +1,13 @@
 import process from "node:process";
-import { spawn } from "node:child_process";
+import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { Buffer } from "node:buffer";
-import { once } from "node:events";
-import { USAGE } from "./const.ts";
-import { onStdin } from "./stdin.ts";
-import { renderML } from "./layout.ts";
-import { parseML } from "./markup.ts";
 import { CURSOR } from "./parser/index.ts";
-import { getScreenSize } from "./utils.ts";
+import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
+import { cmd, equal, getScreenSize } from "./utils.ts";
+import { once } from "node:events";
+import { parseML } from "./markup.ts";
+import { renderML } from "./layout.ts";
+import { spawn } from "node:child_process";
 
 import {
   CLEAR_SCREEN,
@@ -17,7 +17,18 @@ import {
   HIDE_CURSOR,
   SET_CURSOR_POS_00,
 } from "./escape_codes.ts";
-import { cmd } from "./utils.ts";
+
+const Q_BUFF = Buffer.from("q", "ascii");
+const USAGE = `
+USAGE:
+  deno run x1b.ts <tui-app>
+
+EXAMPLES:
+  deno run --allow-env --allow-run main.ts node snake.js
+  deno run x1b.ts python3 tui-app.py
+  deno run x1b.ts node tui-app.js
+  deno run x1b.ts tui-app.sh
+`;
 
 export async function main() {
   const [command, ...args] = Deno.args;
@@ -25,14 +36,14 @@ export async function main() {
     console.info(USAGE);
     return null;
   }
-  const program = spawn(command, args);
+  const program: ChildProcessWithoutNullStreams = spawn(command, args);
   const state = {
     frame: "",
     ...getScreenSize(),
   };
 
   function render() {
-    cmd(SET_CURSOR_POS_00);
+    cmd(SET_CURSOR_POS_00, CLEAR_SCREEN);
     if (!state.frame) return null;
 
     const result = parseML(state.frame, CURSOR);
@@ -56,7 +67,11 @@ export async function main() {
   );
 
   process.stdin.on("data", (buffer: Buffer) => {
-    onStdin(program, buffer);
+    if (equal(buffer, Q_BUFF)) {
+      cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
+      process.exit(0);
+    }
+    handleStdIn(buffer);
   });
   program.stdout.on("data", (input: Buffer) => {
     state.frame = input.toString("utf8");
@@ -64,7 +79,6 @@ export async function main() {
   });
   process.stdout.on("resize", () => {
     Object.assign(state, getScreenSize());
-    cmd(CLEAR_SCREEN);
     render();
   });
 

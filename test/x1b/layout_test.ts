@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { CURSOR } from "../../src/parser/index.ts";
-import { parseML } from "../../src/x1b/markup.ts";
-import { renderML } from "../../src/x1b/layout.ts";
+import { parseML } from "../../src/markup.ts";
+import { renderML } from "../../src/layout.ts";
 
 let input: string = `<box>
     <box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>

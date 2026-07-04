@@ -1,7 +1,5 @@
 import { Node, TML } from "./markup.ts";
 import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
-import { parseML } from "./markup.ts";
-import { CURSOR } from "./parser/index.ts";
 
 /*
   BASIC ALGORITHM
