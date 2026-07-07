@@ -22,7 +22,7 @@ export function input(buffer: Buffer, write: typeof process.stdin.write) {
   if (button === LEFT_CLICK && m === CLICK_UP) {
     return null;
   } else if (button === LEFT_CLICK && m === CLICK_DOWN) {
-    return null;
+    return write(`CLICK:${col},${row}`);
   } else if (button === SCROLL_DOWN && m === CLICK_DOWN) {
     return null;
   } else if (button === SCROLL_UP && m === CLICK_DOWN) {
