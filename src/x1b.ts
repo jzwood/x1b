@@ -58,12 +58,13 @@ export async function main() {
     ENABLE_SGR_MOUSE_MODE,
   );
 
+  const write = program.stdin.write.bind(program.stdin);
   process.stdin.on("data", (buffer: Buffer) => {
     if (equal(buffer, Q_BUFF)) {
       cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
       process.exit(0);
     }
-    input(buffer, program.stdin.write.bind(program));
+    input(buffer, write);
   });
   program.stdout.on("data", (ouput: Buffer) => {
     state.frame = ouput.toString("utf8");
