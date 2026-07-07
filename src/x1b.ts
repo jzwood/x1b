@@ -1,12 +1,11 @@
 import process from "node:process";
-import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { Buffer } from "node:buffer";
-import { CURSOR } from "./parser/index.ts";
+import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
 import { cmd, equal, getScreenSize } from "./utils.ts";
+import { input } from "./input.ts";
 import { once } from "node:events";
-import { parseML } from "./markup.ts";
-import { renderML } from "./layout.ts";
+import { redraw } from "./output.ts";
 import { spawn } from "node:child_process";
 
 import {
@@ -30,6 +29,12 @@ EXAMPLES:
   deno run x1b.ts tui-app.sh
 `;
 
+export interface State {
+  frame: string;
+  columns: number;
+  rows: number;
+}
+
 export async function main() {
   const [command, ...args] = Deno.args;
   if (!command) {
@@ -37,23 +42,10 @@ export async function main() {
     return null;
   }
   const program: ChildProcessWithoutNullStreams = spawn(command, args);
-  const state = {
+  const state: State = {
     frame: "",
     ...getScreenSize(),
   };
-
-  function render() {
-    cmd(SET_CURSOR_POS_00, CLEAR_SCREEN);
-    if (!state.frame) return null;
-
-    const result = parseML(state.frame, CURSOR);
-    const frame = result.ok
-      ? renderML(result.value.result, state.columns).content.join(
-        "\n",
-      )
-      : state.frame;
-    process.stdout.write(frame);
-  }
 
   process.stdin.setRawMode(true);
 
@@ -71,15 +63,15 @@ export async function main() {
       cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
       process.exit(0);
     }
-    handleStdIn(buffer);
+    input(buffer, program.stdin.write.bind(program));
   });
-  program.stdout.on("data", (input: Buffer) => {
-    state.frame = input.toString("utf8");
-    render();
+  program.stdout.on("data", (ouput: Buffer) => {
+    state.frame = ouput.toString("utf8");
+    redraw(state);
   });
   process.stdout.on("resize", () => {
     Object.assign(state, getScreenSize());
-    render();
+    redraw(state);
   });
 
   const [_code] = await once(program, "close");
