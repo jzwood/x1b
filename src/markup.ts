@@ -14,107 +14,9 @@ import {
   wrap,
   zeroOrMore,
 } from "./parser/index.ts";
+import { Attributes, normalizeAttrs } from "./attributes.ts";
 
-const BORDER_MAP: Record<BorderKey, BorderValue> = {
-  "thin": {
-    N: "─",
-    NE: "┐",
-    E: "│",
-    SE: "┘",
-    S: "─",
-    SW: "└",
-    W: "│",
-    NW: "┌",
-    padding: 2,
-  },
-  "solid": {
-    N: "━",
-    NE: "┓",
-    E: "┃",
-    SE: "┛",
-    S: "━",
-    SW: "┗",
-    W: "┃",
-    NW: "┏",
-    padding: 2,
-  },
-  "transparent": {
-    N: " ",
-    NE: " ",
-    E: " ",
-    SE: " ",
-    S: " ",
-    SW: " ",
-    W: " ",
-    NW: " ",
-    padding: 2,
-  },
-  "double": {
-    N: "═",
-    NE: "╗",
-    E: "║",
-    SE: "╝",
-    S: "═",
-    SW: "╚",
-    W: "║",
-    NW: "╔",
-    padding: 2,
-  },
-  "shaded": {
-    N: "░",
-    NE: "░",
-    E: "░",
-    SE: "░",
-    S: "░",
-    SW: "░",
-    W: "░",
-    NW: "░",
-    padding: 2,
-  },
-  "none": {
-    N: "",
-    NE: "",
-    E: "",
-    SE: "",
-    S: "",
-    SW: "",
-    W: "",
-    NW: "",
-    padding: 0,
-  },
-};
-
-type BorderKey =
-  | "thin"
-  | "solid"
-  | "double"
-  | "shaded"
-  | "transparent"
-  | "none";
-
-interface BorderValue {
-  N: string;
-  NE: string;
-  E: string;
-  SE: string;
-  S: string;
-  SW: string;
-  W: string;
-  NW: string;
-  padding: number;
-}
-
-interface Attributes {
-  id: string;
-  border: BorderValue;
-}
-
-const BASE_ATTRIBUTES: Attributes = {
-  id: "",
-  border: BORDER_MAP.solid,
-};
-
-enum TagName {
+export enum TagName {
   Box = "box",
   Italics = "i",
   Underline = "u",
@@ -159,13 +61,13 @@ function parseCustomElem(tag: TagName): Parser<Element> {
         parseML,
         parseClose,
       ),
-      (attrs, children): Element => {
-        return {
+      (attrs, children): Element => (
+        {
           tag,
-          attrs: BASE_ATTRIBUTES,
+          attrs: normalizeAttrs(tag, attrs),
           children,
-        };
-      },
+        }
+      ),
     );
     return parser(input, cursor);
   };

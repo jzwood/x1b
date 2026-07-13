@@ -48,3 +48,11 @@ export function chunkEvery(
   const tail = str.slice(count);
   return chunkEvery(tail, count, [...acc, head]);
 }
+
+export function freeze<T extends object>(obj: T): Readonly<T> {
+  return Object.freeze(obj);
+}
+
+export function clone<T extends object>(obj: T): T {
+  return structuredClone(obj);
+}
