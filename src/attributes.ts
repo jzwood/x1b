@@ -1,4 +1,4 @@
-import { clone, freeze } from "./utils.ts";
+import { clone, freeze, RGB, hexToRGB } from "./utils.ts";
 import { TagName } from "./markup.ts";
 
 export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
@@ -82,7 +82,7 @@ interface BorderMeta {
   padding: number;
 }
 
-const border: readonly string[] = [
+const BORDER: readonly string[] = [
   "thin",
   "solid",
   "double",
@@ -90,34 +90,34 @@ const border: readonly string[] = [
   "transparent",
   "none",
 ];
-type Border = typeof border[number];
-const flow: readonly string[] = ["wrap", "column"];
-type Flow = typeof flow[number];
+type Border = typeof BORDER[number];
+const FLOW: readonly string[] = ["wrap", "column"];
+type Flow = typeof FLOW[number];
 
 export interface Attributes {
   id: string;
   border: Border;
   flow: Flow;
-  ["border-color"]: string;
-  ["bg-color"]: string;
-  ["font-color"]: string;
+  ["border-color"]: RGB | null;
+  ["bg-color"]: RGB | null;
+  ["font-color"]: RGB | null;
 }
 
 const BASE_ATTRIBUTES: Attributes = freeze({
   id: "",
   flow: "wrap",
   border: "solid",
-  ["border-color"]: "",
-  ["bg-color"]: "",
-  ["font-color"]: "",
+  ["border-color"]: null,
+  ["bg-color"]: null,
+  ["font-color"]: null,
 });
 
 function isFlow(key: string, value: string): value is Flow {
-  return key === "flow" && flow.includes(value);
+  return key === "flow" && FLOW.includes(value);
 }
 
 function isBorder(key: string, value: string): value is Border {
-  return key === "border" && Object.values(border).includes(value);
+  return key === "border" && BORDER.includes(value);
 }
 
 export function normalizeAttrs(
@@ -137,6 +137,10 @@ export function normalizeAttrs(
     }
     if (isFlow(key, value)) {
       return Object.assign(attrs, { flow: value });
+    }
+    if (key in BASE_ATTRIBUTES && key.endsWith("-color")) {
+      const rgb = hexToRGB(value);
+      return Object.assign(attrs, { [key]: rgb });
     }
     return attrs;
   }, clone(BASE_ATTRIBUTES));

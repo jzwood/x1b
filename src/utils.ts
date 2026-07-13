@@ -56,3 +56,21 @@ export function freeze<T extends object>(obj: T): Readonly<T> {
 export function clone<T extends object>(obj: T): T {
   return structuredClone(obj);
 }
+
+export type RGB = [number, number, number];
+function isRGB(value: unknown): value is RGB {
+  return Array.isArray(value) && value.length === 3;
+}
+
+export function hexToRGB(hex: string): null | RGB {
+  const is3digit = hex.replace("#", "").length === 3;
+  const rgb = hex
+    .replace("#", "")
+    .split("")
+    .map((c) => (is3digit ? c + c : c))
+    .join("")
+    .match(/.{1,2}/g)
+    ?.map((rgb) => parseInt(rgb, 16))
+
+    return isRGB(rgb) ? rgb : null;
+}
