@@ -1,5 +1,6 @@
 import { Element, Node, TML } from "./markup.ts";
 import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
+import { BORDER_MAP } from "./attributes.ts";
 
 /*
   BASIC ALGORITHM
@@ -33,7 +34,7 @@ function renderText(text: string, maxWidth: number): Block {
 
 function renderElement(elem: Element, maxWidth: number): Block {
   const block = renderML(elem.children, maxWidth);
-  const border = elem.attrs.border;
+  const border = BORDER_MAP[elem.attrs.border];
   const north: string = [border.NW, ...range(block.width, border.N), border.NE]
     .join("");
   const south: string = [border.SW, ...range(block.width, border.S), border.SE]
@@ -71,7 +72,7 @@ function renderBlockColumn(blocks: Block[]): Block {
 
 export function renderML(ast: TML, maxWidth: number): Block {
   const blocks: Block[][] = [[]];
-  const layout = ast.reduce(({ x, r, blocks }, node) => {
+  const layout = ast.reduce(({ x, r, blocks }, node: Node) => {
     const block: Block = typeof node === "string"
       ? renderText(node, maxWidth)
       : renderElement(node, maxWidth);

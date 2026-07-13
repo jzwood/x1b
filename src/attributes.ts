@@ -1,7 +1,7 @@
 import { clone, freeze } from "./utils.ts";
-import { TagName } from './markup.ts'
+import { TagName } from "./markup.ts";
 
-const BORDER_MAP: Record<BorderKey, BorderValue> = freeze({
+export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
   "thin": {
     N: "─",
     NE: "┐",
@@ -70,15 +70,7 @@ const BORDER_MAP: Record<BorderKey, BorderValue> = freeze({
   },
 });
 
-type BorderKey =
-  | "thin"
-  | "solid"
-  | "double"
-  | "shaded"
-  | "transparent"
-  | "none";
-
-interface BorderValue {
+interface BorderMeta {
   N: string;
   NE: string;
   E: string;
@@ -90,24 +82,61 @@ interface BorderValue {
   padding: number;
 }
 
+const border: readonly string[] = [
+  "thin",
+  "solid",
+  "double",
+  "shaded",
+  "transparent",
+  "none",
+];
+type Border = typeof border[number];
+const flow: readonly string[] = ["wrap", "column"];
+type Flow = typeof flow[number];
+
 export interface Attributes {
   id: string;
-  border: BorderValue;
+  border: Border;
+  flow: Flow;
+  ["border-color"]: string;
+  ["bg-color"]: string;
+  ["font-color"]: string;
 }
 
 const BASE_ATTRIBUTES: Attributes = freeze({
   id: "",
-  border: BORDER_MAP.solid,
+  flow: "wrap",
+  border: "solid",
+  ["border-color"]: "",
+  ["bg-color"]: "",
+  ["font-color"]: "",
 });
 
-export function normalizeAttrs(tag: TagName, attrs: [string, string][]): Attributes {
+function isFlow(key: string, value: string): value is Flow {
+  return key === "flow" && flow.includes(value);
+}
+
+function isBorder(key: string, value: string): value is Border {
+  return key === "border" && Object.values(border).includes(value);
+}
+
+export function normalizeAttrs(
+  tag: TagName,
+  attrs: [string, string][],
+): Attributes {
   return attrs.reduce((attrs, [key, value]) => {
-    if (key === "border" && value in BORDER_MAP) {
-      const border = BORDER_MAP[value as BorderKey];
+    if (key === "id") {
+      return Object.assign(attrs, { id: value });
+    }
+    if (isBorder(key, value)) {
+      const border = BORDER_MAP[value];
       return Object.assign(attrs, { border });
     }
     if (tag === TagName.Box) {
       return Object.assign(attrs, { border: BORDER_MAP.solid });
+    }
+    if (isFlow(key, value)) {
+      return Object.assign(attrs, { flow: value });
     }
     return attrs;
   }, clone(BASE_ATTRIBUTES));
