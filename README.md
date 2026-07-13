@@ -32,7 +32,7 @@ id="<alphanumeric>"
 flow="wrap" | "column"
   default: *.flow="wrap"
 
-border="thin" | "solid" | "shaded" | "none"
+border="thin" | "solid" | "double" | "shaded" | "transparent" | "none"
   default: box.border="thin"
   default: *.border="none"
 

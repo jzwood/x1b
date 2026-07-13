@@ -1,4 +1,4 @@
-import { Node, TML } from "./markup.ts";
+import { Element, Node, TML } from "./markup.ts";
 import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
 
 /*
@@ -11,38 +11,10 @@ import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
    3. move to child[n+1]
  */
 
-const N = "─";
-const NE = "┐";
-const E = "│";
-const SE = "┘";
-const S = "─";
-const SW = "└";
-const W = "│";
-const NW = "┌";
-
 interface Block {
   width: number;
   height: number;
   content: string[];
-}
-
-function border(text: string): Block {
-  const lines = text.split("\n");
-  const width = maxBy(lines, (line) => line.length);
-
-  const north: string = [NW, ...range(width, N), NE].join("");
-  const south: string = [SW, ...range(width, S), SE].join("");
-  const content = [
-    north,
-    ...lines.map((line) => [W, ...line.padEnd(width), E].join("")),
-    south,
-  ];
-
-  return {
-    width: content[0]?.length ?? 0,
-    height: content.length,
-    content,
-  };
 }
 
 function renderText(text: string, maxWidth: number): Block {
@@ -59,19 +31,22 @@ function renderText(text: string, maxWidth: number): Block {
   };
 }
 
-function renderNode(node: Node, maxWidth: number): Block {
-  if (typeof node === "string") return renderText(node, maxWidth);
-
-  const block = renderML(node.children, maxWidth);
-  const north: string = [NW, ...range(block.width, N), NE].join("");
-  const south: string = [SW, ...range(block.width, S), SE].join("");
+function renderElement(elem: Element, maxWidth: number): Block {
+  const block = renderML(elem.children, maxWidth);
+  const border = elem.attrs.border;
+  const north: string = [border.NW, ...range(block.width, border.N), border.NE]
+    .join("");
+  const south: string = [border.SW, ...range(block.width, border.S), border.SE]
+    .join("");
   block.content = [
     north,
-    ...block.content.map((line) => W + line.padEnd(block.width) + E),
+    ...block.content.map((line) =>
+      border.W + line.padEnd(block.width) + border.E
+    ),
     south,
   ];
-  block.width += 2;
-  block.height += 2;
+  block.width += border.padding;
+  block.height += border.padding;
   return block;
 }
 
@@ -97,7 +72,9 @@ function renderBlockColumn(blocks: Block[]): Block {
 export function renderML(ast: TML, maxWidth: number): Block {
   const blocks: Block[][] = [[]];
   const layout = ast.reduce(({ x, r, blocks }, node) => {
-    const block: Block = renderNode(node, maxWidth);
+    const block: Block = typeof node === "string"
+      ? renderText(node, maxWidth)
+      : renderElement(node, maxWidth);
     if (block.width > (maxWidth - x)) {
       blocks.push([block]);
       return { x: block.width, r: r + 1, blocks };
