@@ -6,34 +6,34 @@ function frame(tick) {
   return `<box>
   BIG FRUIT SALE${repeat((tick % 3) + 1, "!")}
   <box>
-    <box>Abiu</box>
-    <box>Açaí</box>
-    <box>Acerola</box>
-    <box>Akebi</box>
-    <box>Ackee</box>
-    <box>African</box>
-    <box>Cherry</box>
-    <box>Orange</box>
-    <box>Apple</box>
-    <box>Apricot</box>
-    <box>Aratiles</box>
-    <box>Araza</box>
-    <box>Avocado</box>
-    <box>Banana</box>
-    <box>Bilberry</box>
-    <box>Blackberry</box>
-    <box>Blackcurrant</box>
-    <box>Black</box>
-    <box>sapote</box>
-    <box>Blueberry</box>
-    <box>Boysenberry</box>
-    <box>Breadfruit</box>
-    <box>Buddha's</box>
-    <box>hand</box>
-    <box>(fingered</box>
-    <box>citron)</box>
-    <box>Cactus</box>
-    <box>pear</box>
+    <box border="transparent">Abiu</box>
+    <box border="transparent">Açaí</box>
+    <box border="transparent">Acerola</box>
+    <box border="transparent">Akebi</box>
+    <box border="transparent">Ackee</box>
+    <box border="transparent">African</box>
+    <box border="transparent">Cherry</box>
+    <box border="transparent">Orange</box>
+    <box border="transparent">Apple</box>
+    <box border="transparent">Apricot</box>
+    <box border="transparent">Aratiles</box>
+    <box border="transparent">Araza</box>
+    <box border="transparent">Avocado</box>
+    <box border="transparent">Banana</box>
+    <box border="transparent">Bilberry</box>
+    <box border="transparent">Blackberry</box>
+    <box border="transparent">Blackcurrant</box>
+    <box border="transparent">Black</box>
+    <box border="transparent">sapote</box>
+    <box border="transparent">Blueberry</box>
+    <box border="transparent">Boysenberry</box>
+    <box border="transparent">Breadfruit</box>
+    <box border="transparent">Buddha's</box>
+    <box border="transparent">hand</box>
+    <box border="transparent">(fingered</box>
+    <box border="transparent">citron)</box>
+    <box border="transparent">Cactus</box>
+    <box border="transparent">pear</box>
   </box>
   <box>Login</box>
   <box>Subscribe</box>

@@ -70,7 +70,7 @@ export function hexToRGB(hex: string): null | RGB {
     .map((c) => (is3digit ? c + c : c))
     .join("")
     .match(/.{1,2}/g)
-    ?.map((rgb) => parseInt(rgb, 16))
+    ?.map((rgb) => parseInt(rgb, 16));
 
-    return isRGB(rgb) ? rgb : null;
+  return isRGB(rgb) ? rgb : null;
 }

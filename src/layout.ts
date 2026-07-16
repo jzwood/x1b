@@ -35,19 +35,32 @@ function renderText(text: string, maxWidth: number): Block {
 function renderElement(elem: Element, maxWidth: number): Block {
   const block = renderML(elem.children, maxWidth);
   const border = BORDER_MAP[elem.attrs.border];
-  const north: string = [border.NW, ...range(block.width, border.N), border.NE]
-    .join("");
-  const south: string = [border.SW, ...range(block.width, border.S), border.SE]
-    .join("");
-  block.content = [
-    north,
-    ...block.content.map((line) =>
-      border.W + line.padEnd(block.width) + border.E
-    ),
-    south,
-  ];
-  block.width += border.padding;
-  block.height += border.padding;
+  if (border) {
+    const north: string = [
+      border.NW,
+      ...range(block.width, border.N),
+      border.NE,
+    ]
+      .join("");
+    const south: string = [
+      border.SW,
+      ...range(block.width, border.S),
+      border.SE,
+    ]
+      .join("");
+    block.content = [
+      north,
+      ...block.content.map((line) =>
+        border.W + line.padEnd(block.width) + border.E
+      ),
+      south,
+    ];
+    const padding = 2;
+    block.width += padding;
+    block.height += padding;
+  } else {
+    block.content = block.content.map((line) => line.padEnd(block.width));
+  }
   return block;
 }
 

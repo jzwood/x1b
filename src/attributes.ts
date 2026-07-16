@@ -1,4 +1,4 @@
-import { clone, freeze, RGB, hexToRGB } from "./utils.ts";
+import { clone, freeze, hexToRGB, RGB } from "./utils.ts";
 import { TagName } from "./markup.ts";
 
 export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
@@ -11,7 +11,6 @@ export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
     SW: "└",
     W: "│",
     NW: "┌",
-    padding: 2,
   },
   "solid": {
     N: "━",
@@ -22,7 +21,6 @@ export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
     SW: "┗",
     W: "┃",
     NW: "┏",
-    padding: 2,
   },
   "transparent": {
     N: " ",
@@ -33,7 +31,6 @@ export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
     SW: " ",
     W: " ",
     NW: " ",
-    padding: 2,
   },
   "double": {
     N: "═",
@@ -44,7 +41,6 @@ export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
     SW: "╚",
     W: "║",
     NW: "╔",
-    padding: 2,
   },
   "shaded": {
     N: "░",
@@ -55,18 +51,6 @@ export const BORDER_MAP: Record<Border, BorderMeta> = freeze({
     SW: "░",
     W: "░",
     NW: "░",
-    padding: 2,
-  },
-  "none": {
-    N: "",
-    NE: "",
-    E: "",
-    SE: "",
-    S: "",
-    SW: "",
-    W: "",
-    NW: "",
-    padding: 0,
   },
 });
 
@@ -79,7 +63,6 @@ interface BorderMeta {
   SW: string;
   W: string;
   NW: string;
-  padding: number;
 }
 
 const BORDER: readonly string[] = [
@@ -88,11 +71,12 @@ const BORDER: readonly string[] = [
   "double",
   "shaded",
   "transparent",
-  "none",
 ];
 type Border = typeof BORDER[number];
 const FLOW: readonly string[] = ["wrap", "column"];
 type Flow = typeof FLOW[number];
+const RGB_KEY: readonly string[] = ["border-color", "bg-color", "font-color"];
+type RGBField = typeof RGB_KEY[number];
 
 export interface Attributes {
   id: string;
@@ -110,6 +94,8 @@ const BASE_ATTRIBUTES: Attributes = freeze({
   ["border-color"]: null,
   ["bg-color"]: null,
   ["font-color"]: null,
+  ["max-width"]: null,
+  ["max-height"]: null,
 });
 
 function isFlow(key: string, value: string): value is Flow {
@@ -118,6 +104,10 @@ function isFlow(key: string, value: string): value is Flow {
 
 function isBorder(key: string, value: string): value is Border {
   return key === "border" && BORDER.includes(value);
+}
+
+function isRgbKey(key: string): key is RGBField {
+  return RGB_KEY.includes(key);
 }
 
 export function normalizeAttrs(
@@ -129,8 +119,7 @@ export function normalizeAttrs(
       return Object.assign(attrs, { id: value });
     }
     if (isBorder(key, value)) {
-      const border = BORDER_MAP[value];
-      return Object.assign(attrs, { border });
+      return Object.assign(attrs, { border: value });
     }
     if (tag === TagName.Box) {
       return Object.assign(attrs, { border: BORDER_MAP.solid });
@@ -138,7 +127,7 @@ export function normalizeAttrs(
     if (isFlow(key, value)) {
       return Object.assign(attrs, { flow: value });
     }
-    if (key in BASE_ATTRIBUTES && key.endsWith("-color")) {
+    if (isRgbKey(key)) {
       const rgb = hexToRGB(value);
       return Object.assign(attrs, { [key]: rgb });
     }
