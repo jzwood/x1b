@@ -65,17 +65,17 @@ interface BorderMeta {
   NW: string;
 }
 
-const BORDER: readonly string[] = [
+const BORDER = [
   "thin",
   "solid",
   "double",
   "shaded",
   "transparent",
-];
+] as const;
 type Border = typeof BORDER[number];
-const FLOW: readonly string[] = ["wrap", "column"];
+const FLOW = ["wrap", "column"] as const;
 type Flow = typeof FLOW[number];
-const RGB_KEY: readonly string[] = ["border-color", "bg-color", "font-color"];
+const RGB_KEY = ["border-color", "bg-color", "font-color"] as const;
 type RGBField = typeof RGB_KEY[number];
 
 export interface Attributes {
@@ -99,15 +99,15 @@ const BASE_ATTRIBUTES: Attributes = freeze({
 });
 
 function isFlow(key: string, value: string): value is Flow {
-  return key === "flow" && FLOW.includes(value);
+  return key === "flow" && FLOW.includes(value as Flow);
 }
 
 function isBorder(key: string, value: string): value is Border {
-  return key === "border" && BORDER.includes(value);
+  return key === "border" && BORDER.includes(value as Border);
 }
 
 function isRgbKey(key: string): key is RGBField {
-  return RGB_KEY.includes(key);
+  return RGB_KEY.includes(key as RGBField);
 }
 
 export function normalizeAttrs(
@@ -116,20 +116,16 @@ export function normalizeAttrs(
 ): Attributes {
   return attrs.reduce((attrs, [key, value]) => {
     if (key === "id") {
-      return Object.assign(attrs, { id: value });
-    }
-    if (isBorder(key, value)) {
-      return Object.assign(attrs, { border: value });
-    }
-    if (tag === TagName.Box) {
-      return Object.assign(attrs, { border: BORDER_MAP.solid });
-    }
-    if (isFlow(key, value)) {
-      return Object.assign(attrs, { flow: value });
-    }
-    if (isRgbKey(key)) {
-      const rgb = hexToRGB(value);
-      return Object.assign(attrs, { [key]: rgb });
+      attrs.id = value;
+    } else if (isBorder(key, value)) {
+      attrs.border = value;
+      return attrs;
+    } else if (tag === TagName.Box) {
+      attrs.border = "solid";
+    } else if (isFlow(key, value)) {
+      attrs.flow = value;
+    } else if (isRgbKey(key)) {
+      attrs[key] = hexToRGB(value);
     }
     return attrs;
   }, clone(BASE_ATTRIBUTES));
