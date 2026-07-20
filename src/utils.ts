@@ -31,22 +31,37 @@ export function sumBy<T>(arr: T[], fn: (x: T) => number): number {
   return arr.reduce((acc, x) => acc + fn(x), 0);
 }
 
-//export function chunkEvery<T>(arr: T[], count: number, acc: T[][] = []): T[][] {
-//if (arr.length === 0) return acc
-//const head: T[] = arr.slice(0, count)
-//const tail: T[] = arr.slice(count)
-//return chunkEvery(tail, count, [...acc, head])
-//}
+const ESCAPE_CODE_REGEX = /\x1B\[.*?[a-zA-Z]/g;
+export function lineLength(line: string): number {
+  return line.matchAll(ESCAPE_CODE_REGEX).reduce(
+    (length, [match]) => length - match.length,
+    line.length,
+  );
+}
+
+function skipIndex(
+  matches: IterableIterator<RegExpMatchArray>,
+  width: number,
+): number {
+  const { value } = matches.next();
+  if (value?.index == null || width <= value.index) return width;
+  return skipIndex(matches, width + value[0].length);
+}
+
+export function safeIndex(str: string, width: number): number {
+  return skipIndex(str.matchAll(ESCAPE_CODE_REGEX), width);
+}
 
 export function chunkEvery(
   str: string,
-  count: number,
+  width: number,
   acc: string[] = [],
 ): string[] {
   if (str.length === 0) return acc;
-  const head = str.slice(0, count);
-  const tail = str.slice(count);
-  return chunkEvery(tail, count, [...acc, head]);
+  const index = safeIndex(str, width);
+  const head = str.slice(0, index);
+  const tail = str.slice(index);
+  return chunkEvery(tail, width, [...acc, head]);
 }
 
 export function freeze<T extends object>(obj: T): Readonly<T> {

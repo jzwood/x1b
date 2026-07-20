@@ -1,5 +1,12 @@
 import { Element, Node, TML } from "./markup.ts";
-import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
+import {
+  chunkEvery,
+  lineLength,
+  maxBy,
+  range,
+  safeIndex,
+  sumBy,
+} from "./utils.ts";
 import { BORDER_MAP } from "./attributes.ts";
 
 /*
@@ -18,11 +25,16 @@ interface Block {
   content: string[];
 }
 
+function safePad(line: string, width: number): string {
+  return line.padEnd(safeIndex(line, width));
+}
+
+// OKAY. instead of getLineLength. instead, for each line, we want to remove the escape code and keep track of its index. We'll then calculate width and do chunking and stuff and at the end we'll surgically replace the escape codes.
 function renderText(text: string, maxWidth: number): Block {
   const lines = text.trim().split("\n");
-  const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
+  const width = Math.min(maxWidth, maxBy(lines, lineLength));
   const content = lines.flatMap((line) =>
-    chunkEvery(line, width).map((line) => line.padEnd(width))
+    chunkEvery(line, width).map((line) => safePad(line, width))
   );
 
   return {
@@ -51,7 +63,7 @@ function renderElement(elem: Element, maxWidth: number): Block {
     block.content = [
       north,
       ...block.content.map((line) =>
-        border.W + line.padEnd(block.width) + border.E
+        border.W + safePad(line, block.width) + border.E
       ),
       south,
     ];
@@ -59,7 +71,7 @@ function renderElement(elem: Element, maxWidth: number): Block {
     block.width += padding;
     block.height += padding;
   } else {
-    block.content = block.content.map((line) => line.padEnd(block.width));
+    block.content = block.content.map((line) => safePad(line, block.width));
   }
   return block;
 }

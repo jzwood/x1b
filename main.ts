@@ -6,8 +6,6 @@ if (import.meta.main) {
   main()
     .catch((err) => {
       console.error(err);
-    })
-    .finally(() => {
       cmd(SHOW_CURSOR);
     });
 }

@@ -1,4 +1,5 @@
 import * as Result from "./result.ts";
+import { range } from "../utils.ts";
 
 export interface Cursor {
   row: number;
@@ -122,4 +123,8 @@ export function traverse<A, B>(apb: (x: B) => Parser<A>, xs: B[]): Parser<A[]> {
 
 export function sequence<T>(ps: Parser<T>[]): Parser<T[]> {
   return traverse((p) => p, ps);
+}
+
+export function repeat<T>(p: Parser<T>, num: number): Parser<T[]> {
+  return sequence(range(num, p));
 }
