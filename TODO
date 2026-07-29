@@ -1,0 +1,16 @@
+BASELINE
+- handle mouse clicks (SMALL)
+- handle all styles (LARGE)
+  - handle nested bg-color
+  - handle min/max width/height
+- handle vertical overflow (MEDIUM)
+- handle box-level scrolling (MEDIUM)
+
+- user docs
+  - examples
+  - marketing website
+
+STRETCH
+- web view
+- config file
+  - potentially with configurable palettes

@@ -5,9 +5,7 @@ import { cmd } from "./src/utils.ts";
 if (import.meta.main) {
   main()
     .catch((err) => {
+      cmd(SHOW_CURSOR);
       console.error(err);
     })
-    .finally(() => {
-      cmd(SHOW_CURSOR);
-    });
 }
