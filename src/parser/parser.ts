@@ -91,8 +91,8 @@ export function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
     map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs])(input, cursor);
 }
 
-export function zeroOrOne<T>(p: Parser<T>): Parser<T[]> {
-  return oneOf(map(p, Array.of.bind(Array)), pure([]));
+export function zeroOrOne<T>(p: Parser<T>): Parser<T | null> {
+  return oneOf(p, pure(null));
 }
 
 export function oneOf<A>(...pas: Parser<A>[]): Parser<A> {

@@ -7,5 +7,5 @@ if (import.meta.main) {
     .catch((err) => {
       cmd(SHOW_CURSOR);
       console.error(err);
-    })
+    });
 }
