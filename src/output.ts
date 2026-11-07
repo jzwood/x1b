@@ -17,9 +17,10 @@ export function redraw(state: State) {
   try {
     const result = parseML(state.frame, CURSOR);
     if (result.ok) {
-      const frame = renderML(result.value.result, state.columns).content.join(
-        "\n",
-      );
+      const frame = renderML(result.value.result, state.columns, "")
+        .content
+        .map((row) => row.map(({ char }) => char).join(""))
+        .join("\n");
       process.stdout.write(frame);
     } else {
       showError(state);

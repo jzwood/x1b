@@ -12,54 +12,77 @@ import { BORDER_MAP } from "./attributes.ts";
    3. move to child[n+1]
  */
 
-interface Block {
-  width: number;
-  height: number;
-  content: string[];
+interface Cell {
+  id: string;
+  char: string;
 }
 
-function renderText(text: string, maxWidth: number): Block {
+interface Block {
+  id: string;
+  width: number;
+  height: number;
+  content: Cell[][];
+}
+
+function padLine(line: Cell[], width: number, id: string = ""): Cell[] {
+  return line.concat(range(width - line.length, { char: " ", id }));
+}
+
+function charToCell(id: string): (char: string) => Cell {
+  return (char: string) => ({ id, char });
+}
+
+function renderText(text: string, maxWidth: number, id: string): Block {
   const lines = text.trim().split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
-  const content = lines.flatMap((line) =>
-    chunkEvery(line, width).map((line) => line.padEnd(width))
-  );
+  const content = lines.flatMap((line) => chunkEvery(line, width))
+    .map((line) => Array.from(line.padEnd(width)).map(charToCell(id)));
 
   return {
+    id,
     width,
     height: content.length,
     content,
   };
 }
 
-function renderElement(elem: Element, maxWidth: number): Block {
-  const block = renderML(elem.children, maxWidth);
+function renderElement(
+  elem: Element,
+  maxWidth: number,
+  parentId: string,
+): Block {
+  const id = elem.attrs.id || parentId;
+  const toCell = charToCell(id);
+  const block = renderML(elem.children, maxWidth, id);
   const border = BORDER_MAP[elem.attrs.border];
   if (border) {
-    const north: string = [
+    const north: Cell[] = [
       border.NW,
       ...range(block.width, border.N),
       border.NE,
-    ]
-      .join("");
-    const south: string = [
+    ].map(toCell);
+    const south: Cell[] = [
       border.SW,
       ...range(block.width, border.S),
       border.SE,
-    ]
-      .join("");
-    block.content = [
-      north,
-      ...block.content.map((line) =>
-        border.W + line.padEnd(block.width) + border.E
-      ),
-      south,
-    ];
+    ].map(toCell);
+
+    const content = block.content.map((line) => {
+      const cells = padLine(line, block.width, id);
+      cells.unshift({ char: border.W, id });
+      cells.push({ char: border.E, id });
+      return cells;
+    });
+
+    content.unshift(north);
+    content.push(south);
+
     const padding = 2;
     block.width += padding;
     block.height += padding;
+    block.content = content;
   } else {
-    block.content = block.content.map((line) => line.padEnd(block.width));
+    block.content = block.content.map((line) => padLine(line, block.width, id));
   }
   return block;
 }
@@ -69,26 +92,26 @@ function renderBlockRow(blocks: Block[]): Block {
   const width: number = sumBy(blocks, (block) => block.width);
   const content = range(height).map((_, h) =>
     blocks.flatMap(({ width, height, content }) =>
-      h >= height ? range(width + 1, "").join(" ") : content[h]
-    ).join("")
+      h >= height ? range(width, { char: " ", id: "" }) : content[h]
+    )
   );
 
-  return { height, width, content };
+  return { id: "", height, width, content };
 }
 
 function renderBlockColumn(blocks: Block[]): Block {
   const height: number = sumBy(blocks, (block) => block.height);
   const width: number = maxBy(blocks, (block) => block.width);
   const content = blocks.flatMap(({ content }) => content);
-  return { height, width, content };
+  return { id: "", height, width, content };
 }
 
-export function renderML(ast: TML, maxWidth: number): Block {
+export function renderML(ast: TML, maxWidth: number, id: string): Block {
   const blocks: Block[][] = [[]];
   const layout = ast.reduce(({ x, r, blocks }, node: Node) => {
     const block: Block = typeof node === "string"
-      ? renderText(node, maxWidth)
-      : renderElement(node, maxWidth);
+      ? renderText(node, maxWidth, id)
+      : renderElement(node, maxWidth, id);
     if (block.width > (maxWidth - x)) {
       blocks.push([block]);
       return { x: block.width, r: r + 1, blocks };
