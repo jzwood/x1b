@@ -24,8 +24,9 @@ interface Block {
   content: Cell[][];
 }
 
-function padLine(line: Cell[], width: number, id: string = ""): Cell[] {
-  return line.concat(range(width - line.length, { char: " ", id }));
+function padLine(line: Cell[], width: number, id: string = "", char = " "): Cell[] {
+  const size = Math.max(0, width - line.length);
+  return line.concat(range(size, { char, id }));
 }
 
 function charToCell(id: string): (char: string) => Cell {
@@ -122,4 +123,10 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
   }, { x: 0, r: 0, blocks });
   if (blocks[0].length === 0) blocks.shift();
   return renderBlockColumn(layout.blocks.map(renderBlockRow));
+}
+
+export function renderScreen(ast: TML, width: number, height: number): Block {
+  const screen = renderML(ast, width, "");
+  screen.content = screen.content.map((line) => padLine(line, width + 4));
+  return screen;
 }
