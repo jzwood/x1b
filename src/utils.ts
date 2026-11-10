@@ -80,3 +80,24 @@ export function hexToRGB(hex: string): null | RGB {
 
   return isRGB(rgb) ? rgb : null;
 }
+
+//export function throttle(fn: Function, delay: number) {
+//let time = 0;
+//return function (...args: any[]) {
+//let now = Date.now();
+//if (now - time >= delay) {
+//fn.apply(this, args);
+//time = now;
+//}
+//};
+//}
+
+//export function debounce(func: Function, delay: number): Function {
+//let timeout: ReturnType<typeof setTimeout>;
+//return function <A>(...args: any[]) {
+//clearTimeout(timeout);
+//timeout = setTimeout(() => {
+//func.apply(this as any, args);
+//}, delay);
+//};
+//}

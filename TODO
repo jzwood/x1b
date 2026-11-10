@@ -3,12 +3,14 @@ BASELINE
 - handle all styles (LARGE)
   - handle nested bg-color
   - handle min/max width/height
+- figure out why maxwidth needs to be actual width - 4.
 - handle vertical overflow (MEDIUM)
 - handle box-level scrolling (MEDIUM)
 
 - user docs
   - examples
   - marketing website
+
 
 STRETCH
 - web view

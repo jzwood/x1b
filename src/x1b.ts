@@ -3,6 +3,7 @@ import { Buffer } from "node:buffer";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
 import { cmd, equal, getScreenSize } from "./utils.ts";
+import { setImmediate } from "node:timers";
 import { input } from "./input.ts";
 import { once } from "node:events";
 import { redraw } from "./output.ts";
@@ -35,6 +36,12 @@ export interface State {
   rows: number;
 }
 
+interface Draw {
+  resized: boolean;
+  locked: boolean;
+  updated: boolean;
+}
+
 export async function main() {
   const [command, ...args] = Deno.args;
   if (!command) {
@@ -45,6 +52,12 @@ export async function main() {
   const state: State = {
     frame: "",
     ...getScreenSize(),
+  };
+
+  const draw: Draw = {
+    updated: false,
+    resized: false,
+    locked: false,
   };
 
   process.stdin.setRawMode(true);
@@ -58,6 +71,25 @@ export async function main() {
     ENABLE_SGR_MOUSE_MODE,
   );
 
+  function requestFrame() {
+    if ((draw.updated || draw.resized) && !draw.locked) {
+      draw.locked = true;
+
+      if (draw.resized) {
+        Object.assign(state, getScreenSize());
+        draw.resized = false;
+      }
+
+      redraw(state);
+      draw.updated = false;
+
+      setImmediate(() => {
+        draw.locked = false;
+        requestFrame();
+      });
+    }
+  }
+
   const write = program.stdin.write.bind(program.stdin);
   process.stdin.on("data", (buffer: Buffer) => {
     if (equal(buffer, Q_BUFF)) {
@@ -68,11 +100,12 @@ export async function main() {
   });
   program.stdout.on("data", (ouput: Buffer) => {
     state.frame = ouput.toString("utf8");
-    redraw(state);
+    draw.updated = true;
+    requestFrame();
   });
   process.stdout.on("resize", () => {
-    Object.assign(state, getScreenSize());
-    redraw(state);
+    draw.resized = true;
+    requestFrame();
   });
 
   const [_code] = await once(program, "close");

@@ -11,7 +11,8 @@ function showError(state: State) {
   process.stdout.write(ERR_MSG + state.frame.slice(ERR_MSG.length));
 }
 
-export function redraw(state: State) {
+// redraw should NOT just write to stdout -- rather it should request and animation frame
+export function redraw(state: State): void {
   // I think I need to remove the CLEAR_SCREEN and write full width/height each time
   //cmd(SET_CURSOR_POS_00, CLEAR_SCREEN);
   try {
