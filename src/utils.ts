@@ -49,6 +49,12 @@ export function chunkEvery(
   return chunkEvery(tail, count, [...acc, head]);
 }
 
+export function endJoin<A>(left: A, middle: A[], right: A): A[] {
+  middle.unshift(left);
+  middle.push(right);
+  return middle;
+}
+
 export function freeze<T extends object>(obj: T): Readonly<T> {
   return Object.freeze(obj);
 }

@@ -1,5 +1,5 @@
 import { Element, Node, TML } from "./markup.ts";
-import { chunkEvery, maxBy, range, sumBy } from "./utils.ts";
+import { chunkEvery, endJoin, maxBy, range, sumBy } from "./utils.ts";
 import { BORDER_MAP } from "./attributes.ts";
 
 /*
@@ -24,7 +24,12 @@ interface Block {
   content: Cell[][];
 }
 
-function padLine(line: Cell[], width: number, id: string = "", char = " "): Cell[] {
+function padLine(
+  line: Cell[],
+  width: number,
+  id: string = "",
+  char = " ",
+): Cell[] {
   const size = Math.max(0, width - line.length);
   return line.concat(range(size, { char, id }));
 }
@@ -57,26 +62,28 @@ function renderElement(
   const block = renderML(elem.children, maxWidth, id);
   const border = BORDER_MAP[elem.attrs.border];
   if (border) {
-    const north: Cell[] = [
+    const north: Cell[] = endJoin(
       border.NW,
-      ...range(block.width, border.N),
+      range(block.width, border.N),
       border.NE,
-    ].map(toCell);
-    const south: Cell[] = [
+    ).map(toCell);
+
+    const south: Cell[] = endJoin(
       border.SW,
-      ...range(block.width, border.S),
+      range(block.width, border.S),
       border.SE,
-    ].map(toCell);
+    ).map(toCell);
 
-    const content = block.content.map((line) => {
-      const cells = padLine(line, block.width, id);
-      cells.unshift({ char: border.W, id });
-      cells.push({ char: border.E, id });
-      return cells;
-    });
-
-    content.unshift(north);
-    content.push(south);
+    const content = endJoin(
+      north,
+      block.content.map((line) =>
+        endJoin({ char: border.W, id }, padLine(line, block.width, id), {
+          char: border.E,
+          id,
+        })
+      ),
+      south,
+    );
 
     const padding = 2;
     block.width += padding;
