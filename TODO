@@ -5,6 +5,7 @@ BASELINE
   - handle min/max width/height
 - figure out why maxwidth needs to be actual width - 4.
 - handle vertical overflow (MEDIUM)
+  - handle scrolling (mouse wheel? scroll bar? both?)
 - handle box-level scrolling (MEDIUM)
 
 - user docs

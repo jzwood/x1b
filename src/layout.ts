@@ -24,14 +24,18 @@ interface Block {
   content: Cell[][];
 }
 
+function padEnd<A>(line: A[], length: number, elem: A): A[] {
+  const size = Math.max(0, length - line.length);
+  return line.concat(range(size, elem));
+}
+
 function padLine(
   line: Cell[],
   width: number,
   id: string = "",
   char = " ",
 ): Cell[] {
-  const size = Math.max(0, width - line.length);
-  return line.concat(range(size, { char, id }));
+  return padEnd(line, width, { char, id });
 }
 
 function charToCell(id: string): (char: string) => Cell {
@@ -134,6 +138,14 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
 
 export function renderScreen(ast: TML, width: number, height: number): Block {
   const screen = renderML(ast, width, "");
-  screen.content = screen.content.map((line) => padLine(line, width + 4));
+  const trueWidth = width + 4;
+  screen.content = padEnd(
+    screen.content,
+    height,
+    [],
+  )
+    .map((line) => padLine(line, trueWidth))
+    .slice(0, height);
+
   return screen;
 }
