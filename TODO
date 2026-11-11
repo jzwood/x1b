@@ -2,6 +2,7 @@ WIP
 - handle mouse clicks (SMALL)
 
 NEXT
+- better error handling if child app crashes
 - handle all styles (LARGE)
   - handle nested bg-color
   - handle min/max width/height
