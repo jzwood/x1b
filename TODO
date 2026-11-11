@@ -9,10 +9,11 @@ NEXT
 - handle vertical overflow (MEDIUM)
   - handle scrolling (mouse wheel? scroll bar? both?)
 - handle box-level scrolling (MEDIUM)
-- look into escape codes for native tabs (something we want to use?)
 - web view
 - config file
   - indicate log file for debug writes
+    - they can can always write to a file on their end and tail it with less
+    - maybe there's a debug flag which sends 'DEBUG:' data to their app they can log however they want
   - specify command to run child app
   - potentially with configurable palettes
 

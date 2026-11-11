@@ -104,8 +104,8 @@ function renderBlockRow(blocks: Block[]): Block {
   const height: number = maxBy(blocks, (block) => block.height);
   const width: number = sumBy(blocks, (block) => block.width);
   const content = range(height).map((_, h) =>
-    blocks.flatMap(({ width, height, content }) =>
-      h >= height ? range(width, { char: " ", id: "" }) : content[h]
+    blocks.flatMap(({ width, height, content, id }) =>
+      h >= height ? padLine([], width, id) : content[h]
     )
   );
 

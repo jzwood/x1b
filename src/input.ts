@@ -1,5 +1,5 @@
 import { State } from "./x1b.ts";
-import { renderFrame, Cell } from "./layout.ts";
+import { Cell, renderFrame } from "./layout.ts";
 import { CURSOR } from "./parser/index.ts";
 import { parseML } from "./markup.ts";
 
@@ -50,8 +50,11 @@ function handleClick(
 ) {
   const result = parseML(state.frame, CURSOR);
   if (result.ok) {
-    const frame = renderFrame(result.value.result, state).content
-    const cell: Cell = frame[row][col];
+    const frame = renderFrame(result.value.result, state).content;
+    const cell: Cell = frame[row - 1][col - 1]; // row and col are not 0 indexed but JS arrays are
+    Deno.writeTextFileSync("debug.txt", "\n" + JSON.stringify(cell), {
+      append: true,
+    });
     write(`CLICK:${cell.id}`);
   }
 }
