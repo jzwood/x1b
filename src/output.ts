@@ -1,35 +1,90 @@
 import process from "node:process";
+import { setImmediate } from "node:timers";
 import { CURSOR } from "./parser/index.ts";
-import { cmd } from "./utils.ts";
 import { parseML } from "./markup.ts";
 import { renderScreen } from "./layout.ts";
-import { CLEAR_SCREEN, SET_CURSOR_POS_00 } from "./escape_codes.ts";
+import { SET_CURSOR_POS_00 } from "./escape_codes.ts";
 import { State } from "./x1b.ts";
+import { cmd, getScreenSize } from "./utils.ts";
 
-const ERR_MSG = "INVALID X1B MARKUP:";
-function showError(state: State) {
-  process.stdout.write(ERR_MSG + state.frame.slice(ERR_MSG.length));
+interface Draw {
+  resized: boolean;
+  locked: boolean;
+  updated: boolean;
 }
 
-// redraw should NOT just write to stdout -- rather it should request and animation frame
-export function redraw(state: State): void {
-  // I think I need to remove the CLEAR_SCREEN and write full width/height each time
-  //cmd(SET_CURSOR_POS_00, CLEAR_SCREEN);
+export enum Change {
+  NO_OP,
+  NEW_FRAME,
+  RESIZED,
+}
+
+const draw: Draw = {
+  updated: false,
+  resized: false,
+  locked: false,
+};
+
+export function requestDraw(
+  state: State,
+  change: Change,
+  exit: (msg: string) => void,
+) {
+  if (change === Change.NEW_FRAME) {
+    draw.updated = true;
+  } else if (change === Change.RESIZED) {
+    draw.resized = true;
+  } else {
+    // do nothing
+  }
+
+  if ((draw.updated || draw.resized) && !draw.locked) {
+    draw.locked = true;
+
+    if (draw.resized) {
+      Object.assign(state, getScreenSize());
+      draw.resized = false;
+    }
+
+    redraw(state, exit);
+    draw.updated = false;
+
+    setImmediate(() => {
+      draw.locked = false;
+      requestDraw(state, Change.NO_OP, exit);
+    });
+  }
+}
+
+function redraw(state: State, exit: (msg: string) => void): void {
   try {
     const result = parseML(state.frame, CURSOR);
     if (result.ok) {
-      const frame = renderScreen(result.value.result, state.columns, state.rows)
-        .content
-        .map((row) => row.map(({ char }) => char).join(""))
-        .join("\n");
+      if (result.value.remainder === "") {
+        const frame = renderScreen(
+          result.value.result,
+          state.columns,
+          state.rows,
+        )
+          .content
+          .map((row) => row.map(({ char }) => char).join(""))
+          .join("\n");
 
-      cmd(SET_CURSOR_POS_00);
-      process.stdout.write(frame);
+        cmd(SET_CURSOR_POS_00);
+        process.stdout.write(frame);
+      } else {
+        const { row, col } = result.value.cursor;
+        exit(
+          `Invalid x1b markup. could not parse after row ${row}, column ${col}\ncould not parse: ${result.value.remainder}`,
+        );
+      }
     } else {
-      showError(state);
+      const { row, col } = result.error;
+      exit(
+        `Invalid x1b markup. could not parse after row ${row}, column ${col}`,
+      );
     }
   } catch (err) {
-    console.error(err);
-    //showError(state);
+    exit(String(err));
   }
 }

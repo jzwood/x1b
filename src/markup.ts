@@ -80,6 +80,8 @@ const parseText: Parser<string> = map(
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
-export const parseML: Parser<TML> = zeroOrMore(
-  oneOf<Node>(parseElem, parseText),
+export const parseML: Parser<TML> = trimEnd(
+  zeroOrMore(
+    oneOf<Node>(parseElem, parseText),
+  ),
 );

@@ -3,10 +3,9 @@ import { Buffer } from "node:buffer";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
 import { cmd, equal, getScreenSize } from "./utils.ts";
-import { setImmediate } from "node:timers";
 import { input } from "./input.ts";
 import { once } from "node:events";
-import { redraw } from "./output.ts";
+import { Change, requestDraw } from "./output.ts";
 import { spawn } from "node:child_process";
 
 import {
@@ -36,12 +35,6 @@ export interface State {
   rows: number;
 }
 
-interface Draw {
-  resized: boolean;
-  locked: boolean;
-  updated: boolean;
-}
-
 export async function main() {
   const [command, ...args] = Deno.args;
   if (!command) {
@@ -52,12 +45,6 @@ export async function main() {
   const state: State = {
     frame: "",
     ...getScreenSize(),
-  };
-
-  const draw: Draw = {
-    updated: false,
-    resized: false,
-    locked: false,
   };
 
   process.stdin.setRawMode(true);
@@ -71,41 +58,23 @@ export async function main() {
     ENABLE_SGR_MOUSE_MODE,
   );
 
-  function requestFrame() {
-    if ((draw.updated || draw.resized) && !draw.locked) {
-      draw.locked = true;
-
-      if (draw.resized) {
-        Object.assign(state, getScreenSize());
-        draw.resized = false;
-      }
-
-      redraw(state);
-      draw.updated = false;
-
-      setImmediate(() => {
-        draw.locked = false;
-        requestFrame();
-      });
-    }
+  function exit(msg: string = "") {
+    cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
+    if (msg) process.stdout.write(msg);
+    process.exit(0);
   }
 
   const write = program.stdin.write.bind(program.stdin);
   process.stdin.on("data", (buffer: Buffer) => {
-    if (equal(buffer, Q_BUFF)) {
-      cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
-      process.exit(0);
-    }
+    if (equal(buffer, Q_BUFF)) exit();
     input(buffer, write);
   });
   program.stdout.on("data", (ouput: Buffer) => {
     state.frame = ouput.toString("utf8");
-    draw.updated = true;
-    requestFrame();
+    requestDraw(state, Change.NEW_FRAME, exit);
   });
   process.stdout.on("resize", () => {
-    draw.resized = true;
-    requestFrame();
+    requestDraw(state, Change.RESIZED, exit);
   });
 
   const [_code] = await once(program, "close");
