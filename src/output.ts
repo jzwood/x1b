@@ -2,7 +2,7 @@ import process from "node:process";
 import { setImmediate } from "node:timers";
 import { CURSOR } from "./parser/index.ts";
 import { parseML } from "./markup.ts";
-import { renderScreen } from "./layout.ts";
+import { renderFrame } from "./layout.ts";
 import { SET_CURSOR_POS_00 } from "./escape_codes.ts";
 import { State } from "./x1b.ts";
 import { cmd, getScreenSize } from "./utils.ts";
@@ -61,11 +61,7 @@ function redraw(state: State, exit: (msg: string) => void): void {
     const result = parseML(state.frame, CURSOR);
     if (result.ok) {
       if (result.value.remainder === "") {
-        const frame = renderScreen(
-          result.value.result,
-          state.columns,
-          state.rows,
-        )
+        const frame = renderFrame(result.value.result, state)
           .content
           .map((row) => row.map(({ char }) => char).join(""))
           .join("\n");

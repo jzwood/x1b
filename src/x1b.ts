@@ -67,7 +67,7 @@ export async function main() {
   const write = program.stdin.write.bind(program.stdin);
   process.stdin.on("data", (buffer: Buffer) => {
     if (equal(buffer, Q_BUFF)) exit();
-    input(buffer, write);
+    input(buffer, state, write);
   });
   program.stdout.on("data", (ouput: Buffer) => {
     state.frame = ouput.toString("utf8");

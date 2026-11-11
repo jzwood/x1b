@@ -1,6 +1,7 @@
 import { Element, Node, TML } from "./markup.ts";
 import { chunkEvery, endJoin, maxBy, range, sumBy } from "./utils.ts";
 import { BORDER_MAP } from "./attributes.ts";
+import { State } from "./x1b.ts";
 
 /*
   BASIC ALGORITHM
@@ -12,12 +13,12 @@ import { BORDER_MAP } from "./attributes.ts";
    3. move to child[n+1]
  */
 
-interface Cell {
+export interface Cell {
   id: string;
   char: string;
 }
 
-interface Block {
+export interface Block {
   id: string;
   width: number;
   height: number;
@@ -136,7 +137,8 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
   return renderBlockColumn(layout.blocks.map(renderBlockRow));
 }
 
-export function renderScreen(ast: TML, width: number, height: number): Block {
+export function renderFrame(ast: TML, state: State): Block {
+  const { columns: width, rows: height } = state;
   const screen = renderML(ast, width, "");
   const trueWidth = width + 4;
   screen.content = padEnd(

@@ -10,7 +10,7 @@ let input: string = `<box>
 let result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 45).content.join("\n"));
+  console.log(renderML(ml, 45, "").content.join("\n"));
 }
 
 input = `<box>
@@ -24,7 +24,7 @@ input = `<box>
 result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 40).content.join("\n"));
+  console.log(renderML(ml, 40, "").content.join("\n"));
 }
 
 input = `<box>
@@ -37,5 +37,5 @@ hahah it really works
 result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 20).content.join("\n"));
+  console.log(renderML(ml, 20, "").content.join("\n"));
 }
