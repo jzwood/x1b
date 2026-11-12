@@ -8,6 +8,9 @@ function nextFrame(id) {
      <box id="d" border="${border('d', id)}">
         I AM <box id="hello">HELLO</box>
      </box>
+     <box>
+     123<cursor>QWERTY</cursor>456
+     </box>
   </box>
   `;
 }

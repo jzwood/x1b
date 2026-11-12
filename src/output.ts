@@ -1,9 +1,14 @@
 import process from "node:process";
 import { setImmediate } from "node:timers";
 import { CURSOR } from "./parser/index.ts";
-import { parseML } from "./markup.ts";
-import { renderFrame } from "./layout.ts";
-import { SET_CURSOR_POS_00 } from "./escape_codes.ts";
+import { parseML, TagName } from "./markup.ts";
+import { Cell, renderScreen } from "./layout.ts";
+import {
+  HIDE_CURSOR,
+  moveCursorTo,
+  SET_CURSOR_POS_00,
+  SHOW_CURSOR,
+} from "./escape_codes.ts";
 import { State } from "./x1b.ts";
 import { cmd, getScreenSize } from "./utils.ts";
 
@@ -56,18 +61,36 @@ export function requestDraw(
   }
 }
 
+function findCursor(content: Cell[][]): [number, number] | undefined {
+  for (let r = 0; r < content.length; r++) {
+    const row = content[r];
+    for (let c = 0; c < row.length; c++) {
+      const cell: Cell = row[c];
+      if (cell.id === TagName.Cursor) {
+        return [r + 1, c + 1];
+      }
+    }
+  }
+}
+
 function redraw(state: State, exit: (msg: string) => void): void {
   try {
     const result = parseML(state.frame, CURSOR);
     if (result.ok) {
       if (result.value.remainder === "") {
-        const frame = renderFrame(result.value.result, state)
-          .content
+        const screen = renderScreen(result.value.result, state).content;
+
+        const frame = screen
           .map((row) => row.map(({ char }) => char).join(""))
           .join("\n");
 
-        cmd(SET_CURSOR_POS_00);
+        cmd(HIDE_CURSOR, SET_CURSOR_POS_00);
         process.stdout.write(frame);
+
+        const cursor = findCursor(screen);
+        if (cursor) {
+          cmd(SHOW_CURSOR, moveCursorTo(...cursor));
+        }
       } else {
         const { row, col } = result.value.cursor;
         exit(

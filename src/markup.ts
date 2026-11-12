@@ -23,6 +23,7 @@ export enum TagName {
   Bold = "b",
   Strike = "s",
   Cursor = "cursor",
+  Text = "text",
 }
 
 export interface Element {

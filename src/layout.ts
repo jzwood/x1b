@@ -1,4 +1,4 @@
-import { Element, Node, TML } from "./markup.ts";
+import { Element, Node, TagName, TML } from "./markup.ts";
 import { chunkEvery, endJoin, maxBy, range, sumBy } from "./utils.ts";
 import { BORDER_MAP } from "./attributes.ts";
 import { State } from "./x1b.ts";
@@ -62,11 +62,12 @@ function renderElement(
   maxWidth: number,
   parentId: string,
 ): Block {
-  const id = elem.attrs.id || parentId;
+  const isCursor = elem.tag === TagName.Cursor;
+  const id = isCursor ? TagName.Cursor : elem.attrs.id || parentId;
   const toCell = charToCell(id);
   const block = renderML(elem.children, maxWidth, id);
   const border = BORDER_MAP[elem.attrs.border];
-  if (border) {
+  if (border && !isCursor) {
     const north: Cell[] = endJoin(
       border.NW,
       range(block.width, border.N),
@@ -137,7 +138,7 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
   return renderBlockColumn(layout.blocks.map(renderBlockRow));
 }
 
-export function renderFrame(ast: TML, state: State): Block {
+export function renderScreen(ast: TML, state: State): Block {
   const { columns: width, rows: height } = state;
   const screen = renderML(ast, width, "");
   const trueWidth = width + 4;
