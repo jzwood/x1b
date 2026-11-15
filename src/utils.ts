@@ -10,9 +10,8 @@ export function cmd(...codes: string[]) {
 }
 
 export function getScreenSize() {
-  const BUFF_COLS = 4;
   const { columns, rows } = Deno.consoleSize();
-  return { columns: columns - BUFF_COLS, rows };
+  return { columns, rows };
 }
 
 export function equal(b1: Buffer, b2: Buffer) {

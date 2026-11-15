@@ -65,8 +65,9 @@ function renderElement(
   const isCursor = elem.tag === TagName.Cursor;
   const id = isCursor ? TagName.Cursor : elem.attrs.id || parentId;
   const toCell = charToCell(id);
-  const block = renderML(elem.children, maxWidth, id);
   const border = BORDER_MAP[elem.attrs.border];
+  const indent = border ? 2 : 0
+  const block = renderML(elem.children, maxWidth - indent, id);
   if (border && !isCursor) {
     const north: Cell[] = endJoin(
       border.NW,
@@ -141,13 +142,12 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
 export function renderScreen(ast: TML, state: State): Block {
   const { columns: width, rows: height } = state;
   const screen = renderML(ast, width, "");
-  const trueWidth = width + 4;
   screen.content = padEnd(
     screen.content,
     height,
     [],
   )
-    .map((line) => padLine(line, trueWidth))
+    .map((line) => padLine(line, width))
     .slice(0, height);
 
   return screen;

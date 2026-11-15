@@ -85,6 +85,7 @@ function redraw(state: State, exit: (msg: string) => void): void {
           .join("\n");
 
         cmd(HIDE_CURSOR, SET_CURSOR_POS_00);
+        Deno.writeTextFileSync("log.txt", frame);
         process.stdout.write(frame);
 
         const cursor = findCursor(screen);

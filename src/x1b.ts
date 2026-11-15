@@ -76,7 +76,7 @@ export async function main() {
   process.stdout.on("resize", () => {
     requestDraw(state, Change.RESIZED, exit);
   });
-  program.stderr.on("data", exit)
+  program.stderr.on("data", exit);
 
   const [_code] = await once(program, "close");
 }

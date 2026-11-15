@@ -1,11 +1,9 @@
 WIP
 
 NEXT
-- better error handling if child app crashes
 - handle all styles (LARGE)
   - handle nested bg-color
   - handle min/max width/height
-- figure out why maxwidth needs to be actual width - 4.
 - handle vertical overflow (MEDIUM)
   - handle scrolling (mouse wheel? scroll bar? both?)
 - handle box-level scrolling (MEDIUM)
@@ -23,4 +21,6 @@ NEXT
 
 DONE
 - handle mouse clicks (SMALL)
-
+- better error handling if child app crashes
+- figure out why maxwidth needs to be actual width - 4.
+  - OK got it. maxWidth needs to be decremented by 2 for each nesting within a border box
