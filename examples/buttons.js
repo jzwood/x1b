@@ -2,16 +2,16 @@ function nextFrame(id) {
   const border = (option, id) => option === id ? 'solid' : 'thin'
   return `
   <box border="solid">
-     <box id="a" border="${border('a', id)}">OPTION A</box>
-     <box id="b" border="${border('b', id)}">OPTION B</box>
-     <box id="c" border="${border('c', id)}">OPTION C</box>
-     <box id="d" border="${border('d', id)}">
-        I AM <box id="hello">HELLO</box>
-     </box>
-     <box>
-     123<cursor>QWERTY</cursor>456
-     </box>
-     <box> <box> <box> <box> INNER </box> </box> </box> </box>
+      <trim id="a" border="${border('a', id)}">OPTION A</trim>
+      <trim id="b" border="${border('b', id)}">OPTION B</trim>
+      <trim id="c" border="${border('c', id)}">OPTION C</trim>
+    <box id="d" border="${border('d', id)}">
+      <trim>I AM <box id="hello">HELLO</box></trim>
+    </box>
+    <box>
+      123<cursor>QWERTY</cursor>456
+      </box>
+      <box border="double"> <box border="solid"> <box border="thin"> INNER </box> </box> </box>
   </box>
   `;
 }

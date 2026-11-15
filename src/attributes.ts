@@ -114,6 +114,10 @@ function isRgbKey(key: string): key is RGBField {
   return RGB_KEY.includes(key as RGBField);
 }
 
+function isBool(value: string): value is Bool {
+  return BOOL.includes(value as Bool);
+}
+
 export function normalizeAttrs(
   tag: TagName,
   attrs: [string, string][],
@@ -124,8 +128,6 @@ export function normalizeAttrs(
     } else if (isBorder(key, value)) {
       attrs.border = value;
       return attrs;
-    } else if (tag === TagName.Box) {
-      attrs.border = "solid";
     } else if (isFlow(key, value)) {
       attrs.flow = value;
     } else if (isRgbKey(key)) {

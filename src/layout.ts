@@ -44,9 +44,7 @@ function charToCell(id: string): (char: string) => Cell {
 }
 
 function renderText(text: string, maxWidth: number, id: string): Block {
-  const lines = text
-  //.replace(/\s+/g, ' ')
-  .split("\n");
+  const lines = text.split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
   const content = lines.flatMap((line) => chunkEvery(line, width))
     .map((line) => Array.from(line.padEnd(width)).map(charToCell(id)));

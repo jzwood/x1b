@@ -56,6 +56,14 @@ export function pure<A>(result: A): Parser<A> {
     Result.ok({ result, cursor, remainder: input });
 }
 
+export function lazy<T>(thunk: () => Parser<T>): Parser<T> {
+  let cachedParser: Parser<T> | undefined;
+  return (input: string, cursor: Cursor = CURSOR) => {
+    cachedParser ??= thunk();
+    return cachedParser(input, cursor);
+  };
+}
+
 export function map2<A, B, C>(
   pa: Parser<A>,
   pb: Parser<B>,
@@ -82,13 +90,11 @@ export function right<A, B>(pa: Parser<A>, pb: Parser<B>): Parser<B> {
 }
 
 export function zeroOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (input: string, cursor: Cursor = CURSOR) =>
-    oneOf(oneOrMore(p), pure([]))(input, cursor);
+  return lazy(() => oneOf(oneOrMore(p), pure([])));
 }
 
 export function oneOrMore<T>(p: Parser<T>): Parser<T[]> {
-  return (input: string, cursor: Cursor = CURSOR) =>
-    map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs])(input, cursor);
+  return lazy(() => map2(p, zeroOrMore(p), (x: T, xs: T[]) => [x, ...xs]));
 }
 
 export function zeroOrOne<T>(p: Parser<T>): Parser<T | null> {
@@ -113,11 +119,12 @@ export function word(str: string): Parser<string> {
 }
 
 export function traverse<A, B>(apb: (x: B) => Parser<A>, xs: B[]): Parser<A[]> {
-  return (input: string, cursor: Cursor = CURSOR) =>
+  return lazy(() =>
     xs.reduceRight(
       (acc, x) => map2(apb(x), acc, (y: A, ys: A[]) => [y, ...ys]),
       pure<A[]>([]),
-    )(input, cursor);
+    )
+  );
 }
 
 export function sequence<T>(ps: Parser<T>[]): Parser<T[]> {

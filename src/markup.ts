@@ -1,13 +1,14 @@
 import {
   CURSOR,
   Cursor,
+  lazy,
   left,
-  map,
   map2,
   oneOf,
   Parser,
   right,
   someWhitespace,
+  trim,
   trimEnd,
   word,
   wordBy,
@@ -25,6 +26,7 @@ export enum TagName {
   Cursor = "cursor",
   Text = "text",
   Button = "button",
+  Trim = "trim",
 }
 
 export interface Element {
@@ -49,7 +51,7 @@ const parseAttribute: Parser<[string, string]> = map2(
 );
 
 function parseCustomElem(tag: TagName): Parser<Element> {
-  return (input: string, cursor: Cursor = CURSOR) => {
+  return lazy(() => {
     const parseTag = word(tag);
     const parseOpen: Parser<[string, string][]> = wrap(
       "<",
@@ -71,11 +73,14 @@ function parseCustomElem(tag: TagName): Parser<Element> {
         }
       ),
     );
-    return parser(input, cursor);
-  };
+
+    if (tag === TagName.Trim) return trim(parser);
+
+    return parser;
+  });
 }
 
-const parseText: Parser<string> = wordBy((c) => c !== "<")
+const parseText: Parser<string> = wordBy((c) => c !== "<");
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
