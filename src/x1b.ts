@@ -31,8 +31,15 @@ EXAMPLES:
 
 export interface State {
   frame: string;
+  top: number;
   columns: number;
   rows: number;
+}
+
+export function exit(msg: string = "") {
+  cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
+  if (msg) process.stdout.write(msg);
+  process.exit(0);
 }
 
 export async function main() {
@@ -44,6 +51,7 @@ export async function main() {
   const program: ChildProcessWithoutNullStreams = spawn(command, args);
   const state: State = {
     frame: "",
+    top: 0,
     ...getScreenSize(),
   };
 
@@ -57,12 +65,6 @@ export async function main() {
     ENABLE_VT200_MOUSE_REPORTING,
     ENABLE_SGR_MOUSE_MODE,
   );
-
-  function exit(msg: string = "") {
-    cmd(DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR);
-    if (msg) process.stdout.write(msg);
-    process.exit(0);
-  }
 
   const write = program.stdin.write.bind(program.stdin);
   process.stdin.on("data", (buffer: Buffer) => {

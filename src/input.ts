@@ -1,5 +1,6 @@
-import { State } from "./x1b.ts";
+import { State, exit } from "./x1b.ts";
 import { Cell, renderScreen } from "./layout.ts";
+import { Change, requestDraw } from './output.ts'
 import { CURSOR } from "./parser/index.ts";
 import { parseML } from "./markup.ts";
 
@@ -28,14 +29,24 @@ export function input(
   if (match == null) return null;
 
   const [_, button, col, row, m] = match;
+
+  Deno.writeTextFileSync(
+    "log/debug.txt",
+    "\n" + JSON.stringify({ button, col, row, m }),
+    { append: true },
+  );
+
   if (button === LEFT_CLICK && m === CLICK_UP) {
     return null;
   } else if (button === LEFT_CLICK && m === CLICK_DOWN) {
-    //return write(`CLICK:${col},${row}`);
-    handleClick(parseInt(col), parseInt(row), state, write);
+    handleClick(col, row, state, write);
   } else if (button === SCROLL_DOWN && m === CLICK_DOWN) {
+    state.top += 1;
+    requestDraw(state, Change.NEW_FRAME, exit);
     return null;
   } else if (button === SCROLL_UP && m === CLICK_DOWN) {
+    state.top -= 1;
+    requestDraw(state, Change.NEW_FRAME, exit);
     return null;
   }
 
@@ -43,18 +54,18 @@ export function input(
 }
 
 function handleClick(
-  col: number,
-  row: number,
+  col: string,
+  row: string,
   state: State,
   write: typeof process.stdin.write,
 ) {
   const result = parseML(state.frame, CURSOR);
   if (result.ok) {
-    const frame = renderScreen(result.value.result, state).content;
-    const cell: Cell = frame[row - 1][col - 1]; // row and col are not 0 indexed but JS arrays are
-    Deno.writeTextFileSync("debug.txt", "\n" + JSON.stringify(cell), {
-      append: true,
-    });
+    // we need to render the screen to tell which cell was clicked on
+    const screen = renderScreen(result.value.result, state).content;
+    const r = parseInt(row);
+    const c = parseInt(col);
+    const cell: Cell = screen[r - 1][c - 1]; // row and col are not 0 indexed but JS arrays are
     write(`CLICK:${cell.id}`);
   }
 }

@@ -18,6 +18,10 @@ export function equal(b1: Buffer, b2: Buffer) {
   return Buffer.compare(b1, b2) === 0;
 }
 
+export function clamp(lo: number, val: number, hi: number): number {
+  return Math.max(lo, Math.min(val, hi));
+}
+
 export function range<T>(n: number, f: T | number = 0) {
   return Array(n).fill(f);
 }

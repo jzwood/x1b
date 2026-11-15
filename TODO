@@ -3,11 +3,12 @@ WIP
 NEXT
 - handle all styles (LARGE)
   - handle nested bg-color
-  - handle min/max width/height
-- handle vertical overflow (MEDIUM)
-  - handle scrolling (mouse wheel? scroll bar? both?)
-- handle box-level scrolling (MEDIUM)
+- automatically handle color scheme and nested bg-color layers from background to forground.
+- figure out popups
+  - will probably need a new frame layer.
+  - if we go full hog and manage multiple layers then consider adding drop-down menus
 - web view
+- handle box-level scrolling (MEDIUM)
 - config file
   - indicate log file for debug writes
     - they can can always write to a file on their end and tail it with less
@@ -24,3 +25,6 @@ DONE
 - better error handling if child app crashes
 - figure out why maxwidth needs to be actual width - 4.
   - OK got it. maxWidth needs to be decremented by 2 for each nesting within a border box
+- handle min/max width/height
+- handle vertical overflow (MEDIUM)
+  - handle scrolling (mouse wheel? scroll bar? both?) ehh only did scroll wheel

@@ -41,6 +41,8 @@ border-color="<hex>"
 bg-color="<hex>"
 
 font-color="<hex>"
+
+popup="<bool>"
 ```
 
 ### examples
