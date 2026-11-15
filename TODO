@@ -1,5 +1,4 @@
 WIP
-- handle mouse clicks (SMALL)
 
 NEXT
 - better error handling if child app crashes
@@ -21,3 +20,7 @@ NEXT
 - user docs
   - examples
   - marketing website
+
+DONE
+- handle mouse clicks (SMALL)
+

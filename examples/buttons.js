@@ -11,6 +11,7 @@ function nextFrame(id) {
      <box>
      123<cursor>QWERTY</cursor>456
      </box>
+     <box> <box> <box> <box> INNER </box> </box> </box> </box>
   </box>
   `;
 }
