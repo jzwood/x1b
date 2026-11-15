@@ -1,6 +1,6 @@
-import { State, exit } from "./x1b.ts";
+import { exit, State } from "./x1b.ts";
 import { Cell, renderScreen } from "./layout.ts";
-import { Change, requestDraw } from './output.ts'
+import { Change, requestDraw } from "./output.ts";
 import { CURSOR } from "./parser/index.ts";
 import { parseML } from "./markup.ts";
 

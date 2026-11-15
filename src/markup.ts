@@ -24,6 +24,7 @@ export enum TagName {
   Strike = "s",
   Cursor = "cursor",
   Text = "text",
+  Button = "button",
 }
 
 export interface Element {
@@ -74,10 +75,7 @@ function parseCustomElem(tag: TagName): Parser<Element> {
   };
 }
 
-const parseText: Parser<string> = map(
-  wordBy((c) => c !== "<"),
-  (word) => word.trim(),
-);
+const parseText: Parser<string> = wordBy((c) => c !== "<")
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );

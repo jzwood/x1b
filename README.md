@@ -21,7 +21,8 @@ Tags:
 <u></u>
 <b></b>
 <s></s>
-<cursor />
+<cursor></cursor>
+<button></button>
 ```
 
 Global Attributes:
@@ -33,7 +34,6 @@ flow="wrap" | "column"
   default: *.flow="wrap"
 
 border="thin" | "solid" | "double" | "shaded" | "transparent" | "none"
-  default: box.border="thin"
   default: *.border="none"
 
 border-color="<hex>"

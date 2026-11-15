@@ -77,11 +77,14 @@ const FLOW = ["wrap", "column"] as const;
 type Flow = typeof FLOW[number];
 const RGB_KEY = ["border-color", "bg-color", "font-color"] as const;
 type RGBField = typeof RGB_KEY[number];
+const BOOL = ["true", "false"];
+type Bool = typeof BOOL[number];
 
 export interface Attributes {
   id: string;
-  border: Border;
+  border: Border | null;
   flow: Flow;
+  popup: Bool;
   ["border-color"]: RGB | null;
   ["bg-color"]: RGB | null;
   ["font-color"]: RGB | null;
@@ -90,7 +93,8 @@ export interface Attributes {
 const BASE_ATTRIBUTES: Attributes = freeze({
   id: "",
   flow: "wrap",
-  border: "solid",
+  border: null,
+  popup: "false",
   ["border-color"]: null,
   ["bg-color"]: null,
   ["font-color"]: null,

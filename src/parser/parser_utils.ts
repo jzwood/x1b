@@ -29,6 +29,7 @@ export const integer: Parser<number> = P.map(
 export const someWhitespace: Parser<string[]> = P.oneOrMore(
   P.satisfy(isWhitespace),
 );
+
 export const anyWhitespace: Parser<string[]> = P.zeroOrMore(
   P.satisfy(isWhitespace),
 );

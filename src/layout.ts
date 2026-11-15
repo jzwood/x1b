@@ -44,7 +44,9 @@ function charToCell(id: string): (char: string) => Cell {
 }
 
 function renderText(text: string, maxWidth: number, id: string): Block {
-  const lines = text.trim().split("\n");
+  const lines = text
+  //.replace(/\s+/g, ' ')
+  .split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
   const content = lines.flatMap((line) => chunkEvery(line, width))
     .map((line) => Array.from(line.padEnd(width)).map(charToCell(id)));
@@ -65,7 +67,8 @@ function renderElement(
   const isCursor = elem.tag === TagName.Cursor;
   const id = isCursor ? TagName.Cursor : elem.attrs.id || parentId;
   const toCell = charToCell(id);
-  const border = BORDER_MAP[elem.attrs.border];
+  const borderKey = elem.attrs.border;
+  const border = borderKey ? BORDER_MAP[borderKey] : null;
   const indent = border ? 2 : 0;
   const block = renderML(elem.children, maxWidth - indent, id);
   if (border && !isCursor) {
