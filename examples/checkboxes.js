@@ -1,5 +1,4 @@
-const frame = (data) =>
-  `
+const frame = (data) => `
   ${data}
   <box border="shaded">
      <box id="a">A</box>

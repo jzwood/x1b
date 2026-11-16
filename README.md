@@ -60,6 +60,13 @@ FRAME:<box>5:34</box>
 ```
 KEY:<keycode>
 CLICK:<element-id>
+RIGHT-CLICK:<element-id>
+CTRL:<char>
+SHIFT:<char>
+ARROW:LEFT
+ARROW:RIGHT
+ARROW:UP
+ARROW:DOWN
 ```
 
 **outgoing:**

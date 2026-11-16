@@ -6,10 +6,11 @@ import { parseML } from "./markup.ts";
 
 const ESC_DEC = 27;
 const LEFT_CLICK = "0";
+const RIGHT_CLICK = "2";
 const SCROLL_DOWN = "65";
 const SCROLL_UP = "64";
 const CLICK_DOWN = "M";
-const CLICK_UP = "m";
+//const CLICK_UP = "m";
 
 export function input(
   buffer: Buffer,
@@ -36,11 +37,7 @@ export function input(
     { append: true },
   );
 
-  if (button === LEFT_CLICK && m === CLICK_UP) {
-    return null;
-  } else if (button === LEFT_CLICK && m === CLICK_DOWN) {
-    handleClick(col, row, state, write);
-  } else if (button === SCROLL_DOWN && m === CLICK_DOWN) {
+  if (button === SCROLL_DOWN && m === CLICK_DOWN) {
     state.top += 1;
     requestDraw(state, Change.NEW_FRAME, exit);
     return null;
@@ -48,6 +45,10 @@ export function input(
     state.top -= 1;
     requestDraw(state, Change.NEW_FRAME, exit);
     return null;
+  } else if (button === LEFT_CLICK && m === CLICK_DOWN) {
+    return handleClick(col, row, state, false, write);
+  } else if (button == RIGHT_CLICK && m == CLICK_DOWN) {
+    return handleClick(col, row, state, true, write);
   }
 
   return null;
@@ -57,6 +58,7 @@ function handleClick(
   col: string,
   row: string,
   state: State,
+  right: boolean,
   write: typeof process.stdin.write,
 ) {
   const result = parseML(state.frame, CURSOR);
@@ -66,6 +68,6 @@ function handleClick(
     const r = parseInt(row);
     const c = parseInt(col);
     const cell: Cell = screen[r - 1][c - 1]; // row and col are not 0 indexed but JS arrays are
-    write(`CLICK:${cell.id}`);
+    write(`${right ? "RIGHT_" : ""}CLICK:${cell.id}`);
   }
 }

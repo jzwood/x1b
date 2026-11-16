@@ -1,7 +1,6 @@
 import process from "node:process";
 import { Buffer } from "node:buffer";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
-import { DISABLE_ALT_SCREEN_BUFFER, SHOW_CURSOR } from "./escape_codes.ts";
 import { cmd, equal, getScreenSize } from "./utils.ts";
 import { input } from "./input.ts";
 import { once } from "node:events";
@@ -10,11 +9,13 @@ import { spawn } from "node:child_process";
 
 import {
   CLEAR_SCREEN,
+  DISABLE_ALT_SCREEN_BUFFER,
   ENABLE_ALT_SCREEN_BUFFER,
   ENABLE_SGR_MOUSE_MODE,
   ENABLE_VT200_MOUSE_REPORTING,
   HIDE_CURSOR,
   SET_CURSOR_POS_00,
+  SHOW_CURSOR,
 } from "./escape_codes.ts";
 
 const Q_BUFF = Buffer.from("q", "ascii");
