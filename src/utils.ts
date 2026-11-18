@@ -84,6 +84,19 @@ export function hexToRGB(hex: string): null | RGB {
   return isRGB(rgb) ? rgb : null;
 }
 
+export function merge<T extends object>(parent: T, child: T): T {
+  return Object.assign(
+    clone(parent),
+    clean(child),
+  ) as T;
+}
+
+function clean<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value != null && value !== ""),
+  ) as Partial<T>;
+}
+
 //export function throttle(fn: Function, delay: number) {
 //let time = 0;
 //return function (...args: any[]) {

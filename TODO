@@ -1,9 +1,10 @@
 WIP
+- automatically handle color scheme and nested bg-color layers from background to forground.
+  // Copy the strategy with parentId to handle background color (duh)
 
 NEXT
 - handle all styles (LARGE)
   - handle nested bg-color
-- automatically handle color scheme and nested bg-color layers from background to forground.
 - figure out popups
   - will probably need a new frame layer.
   - if we go full hog and manage multiple layers then consider adding drop-down menus

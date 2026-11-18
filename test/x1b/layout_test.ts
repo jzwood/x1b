@@ -2,6 +2,7 @@ import { assertEquals } from "@std/assert";
 import { CURSOR } from "../../src/parser/index.ts";
 import { parseML } from "../../src/markup.ts";
 import { renderML } from "../../src/layout.ts";
+import { BASE_ATTRIBUTES } from "../../src/attributes.ts";
 
 let input: string = `<box>
     <box>hello</box><box>i am</box><box>sam</box><box>do you like green eggs</box><box>and ham?</box>
@@ -10,7 +11,7 @@ let input: string = `<box>
 let result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 45, "").content.join("\n"));
+  console.log(renderML(ml, 45, BASE_ATTRIBUTES).content.join("\n"));
 }
 
 input = `<box>
@@ -24,7 +25,7 @@ input = `<box>
 result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 40, "").content.join("\n"));
+  console.log(renderML(ml, 40, BASE_ATTRIBUTES).content.join("\n"));
 }
 
 input = `<box>
@@ -37,5 +38,5 @@ hahah it really works
 result = parseML(input, CURSOR);
 if (result.ok) {
   let ml = result.value.result;
-  console.log(renderML(ml, 20, "").content.join("\n"));
+  console.log(renderML(ml, 20, BASE_ATTRIBUTES).content.join("\n"));
 }

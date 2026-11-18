@@ -1,7 +1,33 @@
 import { Element, Node, TagName, TML } from "./markup.ts";
-import { chunkEvery, clamp, endJoin, maxBy, range, sumBy } from "./utils.ts";
-import { BORDER_MAP } from "./attributes.ts";
+import {
+  chunkEvery,
+  clamp,
+  endJoin,
+  maxBy,
+  merge,
+  range,
+  sumBy,
+} from "./utils.ts";
+import { Attributes, BASE_ATTRIBUTES, BORDER_MAP } from "./attributes.ts";
 import { State } from "./x1b.ts";
+
+interface Theme {
+  background: string;
+  middleground: string;
+  foreground: string;
+  button: string;
+  border: string;
+  text: string;
+}
+
+const THEME: Theme = {
+  background: "#3e1c5e",
+  middleground: "#5c2b7f",
+  foreground: "#8a52a3",
+  button: "#b78dd3",
+  border: "#1e0e3a",
+  text: "#e1c6e7",
+};
 
 /*
   BASIC ALGORITHM
@@ -19,7 +45,7 @@ export interface Cell {
 }
 
 export interface Block {
-  id: string;
+  attrs: Attributes;
   width: number;
   height: number;
   content: Cell[][];
@@ -43,14 +69,14 @@ function charToCell(id: string): (char: string) => Cell {
   return (char: string) => ({ id, char });
 }
 
-function renderText(text: string, maxWidth: number, id: string): Block {
+function renderText(text: string, maxWidth: number, attrs: Attributes): Block {
   const lines = text.split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
   const content = lines.flatMap((line) => chunkEvery(line, width))
-    .map((line) => Array.from(line.padEnd(width)).map(charToCell(id)));
+    .map((line) => Array.from(line.padEnd(width)).map(charToCell(attrs.id)));
 
   return {
-    id,
+    attrs,
     width,
     height: content.length,
     content,
@@ -60,15 +86,16 @@ function renderText(text: string, maxWidth: number, id: string): Block {
 function renderElement(
   elem: Element,
   maxWidth: number,
-  parentId: string,
+  parentAttr: Attributes,
 ): Block {
   const isCursor = elem.tag === TagName.Cursor;
-  const id = isCursor ? TagName.Cursor : elem.attrs.id || parentId;
+  const attr: Attributes = merge(parentAttr, elem.attrs);
+  const id = isCursor ? TagName.Cursor : attr.id;
   const toCell = charToCell(id);
   const borderKey = elem.attrs.border;
   const border = borderKey ? BORDER_MAP[borderKey] : null;
   const indent = border ? 2 : 0;
-  const block = renderML(elem.children, maxWidth - indent, id);
+  const block = renderML(elem.children, maxWidth - indent, attr);
   if (border && !isCursor) {
     const north: Cell[] = endJoin(
       border.NW,
@@ -103,31 +130,35 @@ function renderElement(
   return block;
 }
 
-function renderBlockRow(blocks: Block[]): Block {
+function renderBlockRow(blocks: Block[], attrs: Attributes): Block {
   const height: number = maxBy(blocks, (block) => block.height);
   const width: number = sumBy(blocks, (block) => block.width);
   const content = range(height).map((_, h) =>
-    blocks.flatMap(({ width, height, content, id }) =>
-      h >= height ? padLine([], width, id) : content[h]
+    blocks.flatMap(({ width, height, content, attrs }) =>
+      h >= height ? padLine([], width, attrs.id) : content[h]
     )
   );
 
-  return { id: "", height, width, content };
+  return { attrs, height, width, content };
 }
 
-function renderBlockColumn(blocks: Block[]): Block {
+function renderBlockColumn(blocks: Block[], attrs: Attributes): Block {
   const height: number = sumBy(blocks, (block) => block.height);
   const width: number = maxBy(blocks, (block) => block.width);
   const content = blocks.flatMap(({ content }) => content);
-  return { id: "", height, width, content };
+  return { attrs, height, width, content };
 }
 
-export function renderML(ast: TML, maxWidth: number, id: string): Block {
+export function renderML(
+  ast: TML,
+  maxWidth: number,
+  attrs: Attributes,
+): Block {
   const blocks: Block[][] = [[]];
   const layout = ast.reduce(({ x, r, blocks }, node: Node) => {
     const block: Block = typeof node === "string"
-      ? renderText(node, maxWidth, id)
-      : renderElement(node, maxWidth, id);
+      ? renderText(node, maxWidth, attrs)
+      : renderElement(node, maxWidth, attrs);
     if (block.width > (maxWidth - x)) {
       blocks.push([block]);
       return { x: block.width, r: r + 1, blocks };
@@ -137,12 +168,15 @@ export function renderML(ast: TML, maxWidth: number, id: string): Block {
     }
   }, { x: 0, r: 0, blocks });
   if (blocks[0].length === 0) blocks.shift();
-  return renderBlockColumn(layout.blocks.map(renderBlockRow));
+  return renderBlockColumn(
+    layout.blocks.map((block) => renderBlockRow(block, attrs)),
+    attrs,
+  );
 }
 
 export function renderScreen(ast: TML, state: State): Block {
   const { columns: width, rows: height } = state;
-  const screen = renderML(ast, width, "");
+  const screen = renderML(ast, width, BASE_ATTRIBUTES);
   const content = padEnd(
     screen.content,
     height,

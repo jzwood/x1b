@@ -90,7 +90,7 @@ export interface Attributes {
   ["font-color"]: RGB | null;
 }
 
-const BASE_ATTRIBUTES: Attributes = freeze({
+export const BASE_ATTRIBUTES: Attributes = freeze({
   id: "",
   flow: "wrap",
   border: null,
@@ -118,10 +118,7 @@ function isBool(value: string): value is Bool {
   return BOOL.includes(value as Bool);
 }
 
-export function normalizeAttrs(
-  tag: TagName,
-  attrs: [string, string][],
-): Attributes {
+export function normalizeAttrs(attrs: [string, string][]): Attributes {
   return attrs.reduce((attrs, [key, value]) => {
     if (key === "id") {
       attrs.id = value;

@@ -1,6 +1,4 @@
 import {
-  CURSOR,
-  Cursor,
   lazy,
   left,
   map2,
@@ -68,7 +66,7 @@ function parseCustomElem(tag: TagName): Parser<Element> {
       (attrs, children): Element => (
         {
           tag,
-          attrs: normalizeAttrs(tag, attrs),
+          attrs: normalizeAttrs(attrs),
           children,
         }
       ),
@@ -84,6 +82,7 @@ const parseText: Parser<string> = wordBy((c) => c !== "<");
 const parseElem: Parser<Element> = oneOf(
   ...Object.values(TagName).map(parseCustomElem),
 );
+
 export const parseML: Parser<TML> = trimEnd(
   zeroOrMore(
     oneOf<Node>(parseElem, parseText),
