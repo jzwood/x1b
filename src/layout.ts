@@ -2,6 +2,7 @@ import { Element, Node, TagName, TML } from "./markup.ts";
 import {
   chunkEvery,
   clamp,
+  clone,
   endJoin,
   maxBy,
   merge,
@@ -86,16 +87,20 @@ function renderText(text: string, maxWidth: number, attrs: Attributes): Block {
 function renderElement(
   elem: Element,
   maxWidth: number,
-  parentAttr: Attributes,
+  parentAttrs: Attributes,
 ): Block {
   const isCursor = elem.tag === TagName.Cursor;
-  const attr: Attributes = merge(parentAttr, elem.attrs);
-  const id = isCursor ? TagName.Cursor : attr.id;
-  const toCell = charToCell(id);
+  const attrs = clone(elem.attrs);
+
+  attrs.id = isCursor ? TagName.Cursor : attrs.id || parentAttrs.id;
+  attrs["bg-color"] ||= parentAttrs["bg-color"];
+  attrs["font-color"] ||= parentAttrs["font-color"];
+
+  const toCell = charToCell(attrs.id);
   const borderKey = elem.attrs.border;
   const border = borderKey ? BORDER_MAP[borderKey] : null;
   const indent = border ? 2 : 0;
-  const block = renderML(elem.children, maxWidth - indent, attr);
+  const block = renderML(elem.children, maxWidth - indent, attrs);
   if (border && !isCursor) {
     const north: Cell[] = endJoin(
       border.NW,
@@ -112,10 +117,14 @@ function renderElement(
     const content = endJoin(
       north,
       block.content.map((line) =>
-        endJoin({ char: border.W, id }, padLine(line, block.width, id), {
-          char: border.E,
-          id,
-        })
+        endJoin(
+          { char: border.W, id: attrs.id },
+          padLine(line, block.width, attrs.id),
+          {
+            char: border.E,
+            id: attrs.id,
+          },
+        )
       ),
       south,
     );
@@ -125,7 +134,9 @@ function renderElement(
     block.height += padding;
     block.content = content;
   } else {
-    block.content = block.content.map((line) => padLine(line, block.width, id));
+    block.content = block.content.map((line) =>
+      padLine(line, block.width, attrs.id)
+    );
   }
   return block;
 }
