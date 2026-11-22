@@ -4,12 +4,13 @@ import {
   clamp,
   clone,
   endJoin,
+  esc,
   maxBy,
-  merge,
   range,
   sumBy,
 } from "./utils.ts";
 import { Attributes, BASE_ATTRIBUTES, BORDER_MAP } from "./attributes.ts";
+import { RESET_BG_COLOR, setBgColor } from "./escape_codes.ts";
 import { State } from "./x1b.ts";
 
 interface Theme {
@@ -93,7 +94,9 @@ function renderElement(
   const attrs = clone(elem.attrs);
 
   attrs.id = isCursor ? TagName.Cursor : attrs.id || parentAttrs.id;
+  const newBgColor = attrs["bg-color"] !== parentAttrs["bg-color"]
   attrs["bg-color"] ||= parentAttrs["bg-color"];
+  const newFontColor = attrs["font-color"] !== parentAttrs["font-color"]
   attrs["font-color"] ||= parentAttrs["font-color"];
 
   const toCell = charToCell(attrs.id);
@@ -101,7 +104,11 @@ function renderElement(
   const border = borderKey ? BORDER_MAP[borderKey] : null;
   const indent = border ? 2 : 0;
   const block = renderML(elem.children, maxWidth - indent, attrs);
-  if (border && !isCursor) {
+  let content;
+
+  if (isCursor || !border) {
+    content = block.content.map((line) => padLine(line, block.width, attrs.id));
+  } else {
     const north: Cell[] = endJoin(
       border.NW,
       range(block.width, border.N),
@@ -114,7 +121,7 @@ function renderElement(
       border.SE,
     ).map(toCell);
 
-    const content = endJoin(
+    content = endJoin(
       north,
       block.content.map((line) =>
         endJoin(
@@ -132,12 +139,22 @@ function renderElement(
     const padding = 2;
     block.width += padding;
     block.height += padding;
-    block.content = content;
-  } else {
-    block.content = block.content.map((line) =>
-      padLine(line, block.width, attrs.id)
-    );
   }
+
+  if (newBgColor) {
+    const bgColor = attrs['bg-color'] ? esc(setBgColor(attrs['bg-color'])) : ''
+    const bgReset = parentAttrs['bg-color'] ? esc(setBgColor(parentAttrs['bg-color'])) : esc(RESET_BG_COLOR)
+
+    content.map((line) => {
+      line[0].char = line[0].char.replace(/^/, bgColor);
+      line[line.length - 1].char = line[line.length - 1].char.replace(/$/, bgReset);
+      return line;
+    });
+  }
+
+
+  block.content = content;
+
   return block;
 }
 
@@ -198,6 +215,7 @@ export function renderScreen(ast: TML, state: State): Block {
   state.top = clamp(0, state.top, content.length - height);
 
   screen.content = content.slice(state.top, height + state.top);
+  content[0][0].char = content[0][0].char.replace(/^/, esc(RESET_BG_COLOR));
 
   return screen;
 }

@@ -68,7 +68,8 @@ export function clone<T extends object>(obj: T): T {
 
 export type RGB = [number, number, number];
 function isRGB(value: unknown): value is RGB {
-  return Array.isArray(value) && value.length === 3;
+  return Array.isArray(value) && value.length === 3 &&
+    !value.some(Number.isNaN);
 }
 
 export function hexToRGB(hex: string): null | RGB {
@@ -85,16 +86,16 @@ export function hexToRGB(hex: string): null | RGB {
 }
 
 //export function merge<T extends object>(parent: T, child: T): T {
-  //return Object.assign(
-    //clone(parent),
-    //clean(child),
-  //) as T;
+//return Object.assign(
+//clone(parent),
+//clean(child),
+//) as T;
 //}
 
 //function clean<T extends object>(obj: T): Partial<T> {
-  //return Object.fromEntries(
-    //Object.entries(obj).filter(([, value]) => value != null && value !== ""),
-  //) as Partial<T>;
+//return Object.fromEntries(
+//Object.entries(obj).filter(([, value]) => value != null && value !== ""),
+//) as Partial<T>;
 //}
 
 //export function throttle(fn: Function, delay: number) {

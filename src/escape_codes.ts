@@ -1,3 +1,5 @@
+import { type RGB } from "./utils.ts";
+
 export const RESET = "[0m";
 export const ENABLE_ALT_SCREEN_BUFFER = "[?1049h";
 export const DISABLE_ALT_SCREEN_BUFFER = "[?1049l";
@@ -15,6 +17,8 @@ const REPORT_CURSOR_POS = "[6n";
 const SAVE_CURSOR_POS = "[s";
 const RESTORE_CURSOR_POS = "[u";
 
+export const setBgColor = ([r, g, b]: RGB) => `[48;2;${r};${g};${b}m`;
+export const RESET_BG_COLOR = "[49m";
 export const moveCursorTo = (x: number, y: number) => `[${~~x};${~~y}H`;
 export const REPORT_SCREEN_SIZE = [
   SAVE_CURSOR_POS,

@@ -2,9 +2,15 @@ function nextFrame(id) {
   const border = (option, id) => option === id ? "solid" : "thin";
   return `
   <box border="solid">
-      <trim id="a" border="${border("a", id)}">OPTION A</trim>
-      <trim id="b" border="${border("b", id)}">OPTION B</trim>
-      <trim id="c" border="${border("c", id)}">OPTION C</trim>
+      <trim id="a" bg-color="#94bfbe" border="${
+    border("a", id)
+  }">OPTION A</trim>
+      <trim id="b" bg-color="#61304b" border="${
+    border("b", id)
+  }">OPTION B</trim>
+      <trim id="c" bg-color="#acf7c1" border="${
+    border("c", id)
+  }">OPTION C</trim>
     <box id="d" border="${border("d", id)}">
       <trim>I AM <box id="hello">HELLO</box></trim>
     </box>

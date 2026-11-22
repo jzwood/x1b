@@ -84,6 +84,7 @@ function redraw(state: State, exit: (msg: string) => void): void {
           .map((row) => row.map(({ char }) => char).join(""))
           .join("\n");
 
+        //  this command can be embedded in the frame -- it doesn't need to be its own write
         cmd(HIDE_CURSOR, SET_CURSOR_POS_00);
         Deno.writeTextFileSync("log/log.txt", frame);
         process.stdout.write(frame);
