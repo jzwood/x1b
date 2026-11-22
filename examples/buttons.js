@@ -17,7 +17,11 @@ function nextFrame(id) {
     <box>
       123<cursor>QWERTY</cursor>456
       </box>
-      <box border="double"> <box border="solid"> <box border="thin"> INNER </box> </box> </box>
+      <box border="double" bg-color="#ff0000">
+        <trim border="solid" bg-color="#00ff00">
+          <trim border="thin" bg-color="#0000ff">INNER</trim>
+        </trim>
+      </box>
   </box>
   `;
 }
