@@ -72,6 +72,25 @@ function isRGB(value: unknown): value is RGB {
     !value.some(Number.isNaN);
 }
 
+export function eqRGB(rgb1: RGB | null, rgb2: RGB | null): boolean {
+  if (rgb1 == null && rgb2 == null) return true;
+
+  if (isRGB(rgb1) && isRGB(rgb2)) {
+    const [r1, g1, b1] = rgb1;
+    const [r2, g2, b2] = rgb2;
+    return r1 === r2 && g1 === g2 && b1 === b2;
+  }
+
+  return false;
+}
+
+//export function eq<A, B>(a: A, b: B) : boolean {
+//const ta = typeof a
+//const tb = typeof b
+//if (ta !== tb) return false
+//return true
+//}
+
 export function hexToRGB(hex: string): null | RGB {
   const is3digit = hex.replace("#", "").length === 3;
   const rgb = hex

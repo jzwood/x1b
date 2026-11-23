@@ -4,6 +4,7 @@ import {
   clamp,
   clone,
   endJoin,
+  eqRGB,
   esc,
   maxBy,
   range,
@@ -217,8 +218,23 @@ export function renderScreen(ast: TML, state: State): Block {
   state.top = clamp(0, state.top, content.length - height);
 
   screen.content = content.slice(state.top, height + state.top);
-  //const sol = content[0][0];
-  //sol.char = esc(RESET_BG_COLOR) + sol.char;
 
   return screen;
+}
+
+export function screenToFrame(screen: Block): string {
+  let frame = esc(RESET_BG_COLOR);
+  let bgColor: RGB | null = null;
+  for (const line of screen.content) {
+    for (const cell of line) {
+      if (!eqRGB(cell.bg, bgColor)) {
+        bgColor = cell.bg;
+        frame += esc(bgColor == null ? RESET_BG_COLOR : setBgColor(bgColor));
+      }
+      frame += cell.char;
+    }
+    frame += "\n";
+  }
+
+  return frame;
 }
