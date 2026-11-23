@@ -1,29 +1,27 @@
 function nextFrame(id) {
   const border = (option, id) => option === id ? "solid" : "thin";
-  return `
-  <box border="solid">
-      <trim id="a" bg-color="#94bfbe" border="${
-    border("a", id)
-  }">OPTION A</trim>
-      <trim id="b" bg-color="#61304b" border="${
-    border("b", id)
-  }">OPTION B</trim>
-      <trim id="c" bg-color="#acf7c1" border="${
-    border("c", id)
-  }">OPTION C</trim>
-    <box id="d" border="${border("d", id)}">
-      <trim>I AM <box id="hello">HELLO</box></trim>
-    </box>
-    <box>
-      123<cursor>QWERTY</cursor>456
+  return `<box bg-color="#cccccc">
+      <box bg-color="#00ff00">
+        <box border="shaded" bg-color="#ff00ff">
+          <box id="a" bg-color="#94bfbe">OPTION A</box>
+          <box> </box>
+          <box id="b" bg-color="#61304b">OPTION B</box>
+        </box>
+        <box> </box>
+        <box id="c" bg-color="#acf7c1">OPTION C</box>
+        <box id="d">
+          <box>I AM <box id="hello">HELLO</box></box>
+        </box>
+        <box>
+          123<cursor>QWERTY</cursor>456
+        </box>
       </box>
       <box border="double" bg-color="#ff0000">
-        <trim border="solid" bg-color="#00ff00">
-          <trim border="thin" bg-color="#0000ff">INNER</trim>
-        </trim>
+        <box border="solid" bg-color="#00ff00">
+          <box border="thin" bg-color="#0000ff">INNER</box>
+        </box>
       </box>
-  </box>
-  `;
+  </box>`;
 }
 
 process.stdout.write(nextFrame(""));

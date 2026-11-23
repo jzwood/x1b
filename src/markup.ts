@@ -24,7 +24,6 @@ export enum TagName {
   Cursor = "cursor",
   Text = "text",
   Button = "button",
-  Trim = "trim",
 }
 
 export interface Element {
@@ -57,7 +56,7 @@ function parseCustomElem(tag: TagName): Parser<Element> {
       ">",
     );
     const parseClose: Parser<string> = wrap("</", parseTag, ">");
-    const parser = map2(
+    return trim(map2(
       parseOpen,
       left(
         parseML,
@@ -70,11 +69,7 @@ function parseCustomElem(tag: TagName): Parser<Element> {
           children,
         }
       ),
-    );
-
-    if (tag === TagName.Trim) return trim(parser);
-
-    return parser;
+    ));
   });
 }
 

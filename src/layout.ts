@@ -7,6 +7,7 @@ import {
   esc,
   maxBy,
   range,
+  type RGB,
   sumBy,
 } from "./utils.ts";
 import { Attributes, BASE_ATTRIBUTES, BORDER_MAP } from "./attributes.ts";
@@ -43,6 +44,7 @@ const THEME: Theme = {
 
 export interface Cell {
   id: string;
+  bg: RGB | null;
   char: string;
 }
 
@@ -61,21 +63,21 @@ function padEnd<A>(line: A[], length: number, elem: A): A[] {
 function padLine(
   line: Cell[],
   width: number,
-  id: string = "",
+  attrs: Attributes,
   char = " ",
 ): Cell[] {
-  return padEnd(line, width, { char, id });
+  return padEnd(line, width, { char, id: attrs.id, bg: attrs["bg-color"] });
 }
 
-function charToCell(id: string): (char: string) => Cell {
-  return (char: string) => ({ id, char });
+function charToCell(attrs: Attributes): (char: string) => Cell {
+  return (char: string) => ({ char, id: attrs.id, bg: attrs["bg-color"] });
 }
 
 function renderText(text: string, maxWidth: number, attrs: Attributes): Block {
   const lines = text.split("\n");
   const width = Math.min(maxWidth, maxBy(lines, (line) => line.length));
   const content = lines.flatMap((line) => chunkEvery(line, width))
-    .map((line) => Array.from(line.padEnd(width)).map(charToCell(attrs.id)));
+    .map((line) => Array.from(line.padEnd(width)).map(charToCell(attrs)));
 
   return {
     attrs,
@@ -94,21 +96,21 @@ function renderElement(
   const attrs = clone(elem.attrs);
 
   attrs.id = isCursor ? TagName.Cursor : attrs.id || parentAttrs.id;
-  const newBgColor = attrs["bg-color"] !== parentAttrs["bg-color"]
-  attrs["bg-color"] ||= parentAttrs["bg-color"];
-  const newFontColor = attrs["font-color"] !== parentAttrs["font-color"]
-  attrs["font-color"] ||= parentAttrs["font-color"];
-
-  const toCell = charToCell(attrs.id);
+  const toCell = charToCell(attrs);
   const borderKey = elem.attrs.border;
   const border = borderKey ? BORDER_MAP[borderKey] : null;
   const indent = border ? 2 : 0;
-  const block = renderML(elem.children, maxWidth - indent, attrs);
-  let content;
 
-  if (isCursor || !border) {
-    content = block.content.map((line) => padLine(line, block.width, attrs.id));
-  } else {
+  //const childBgColor = attrs["bg-color"];
+  //const parentBgColor = parentAttrs["bg-color"];
+
+  attrs["bg-color"] ||= parentAttrs["bg-color"];
+  attrs["font-color"] ||= parentAttrs["font-color"];
+
+  const block = renderML(elem.children, maxWidth - indent, attrs);
+  let content = block.content.map((line) => padLine(line, block.width, attrs));
+
+  if (border && !isCursor) {
     const north: Cell[] = endJoin(
       border.NW,
       range(block.width, border.N),
@@ -123,15 +125,12 @@ function renderElement(
 
     content = endJoin(
       north,
-      block.content.map((line) =>
-        endJoin(
-          { char: border.W, id: attrs.id },
-          padLine(line, block.width, attrs.id),
-          {
-            char: border.E,
-            id: attrs.id,
-          },
-        )
+      content.map((line) =>
+        endJoin({ char: border.W, id: attrs.id, bg: attrs["bg-color"] }, line, {
+          char: border.E,
+          id: attrs.id,
+          bg: attrs["bg-color"],
+        })
       ),
       south,
     );
@@ -141,17 +140,19 @@ function renderElement(
     block.height += padding;
   }
 
-  if (newBgColor) {
-    const bgColor = attrs['bg-color'] ? esc(setBgColor(attrs['bg-color'])) : ''
-    const bgReset = parentAttrs['bg-color'] ? esc(setBgColor(parentAttrs['bg-color'])) : esc(RESET_BG_COLOR)
+  //if (childBgColor !== parentBgColor && childBgColor != null) {
+  //const bgColor = esc(setBgColor(childBgColor));
+  //const bgReset = parentBgColor
+  //? esc(setBgColor(parentBgColor))
+  //: esc(RESET_BG_COLOR);
 
-    content.map((line) => {
-      line[0].char = line[0].char.replace(/^/, bgColor);
-      line[line.length - 1].char = line[line.length - 1].char.replace(/$/, bgReset);
-      return line;
-    });
-  }
-
+  //content.forEach((line) => {
+  //const sol = line[0];
+  //const eol = line[line.length - 1];
+  //sol.char = bgColor + sol.char;
+  //eol.char = eol.char + bgReset;
+  //});
+  //}
 
   block.content = content;
 
@@ -163,7 +164,7 @@ function renderBlockRow(blocks: Block[], attrs: Attributes): Block {
   const width: number = sumBy(blocks, (block) => block.width);
   const content = range(height).map((_, h) =>
     blocks.flatMap(({ width, height, content, attrs }) =>
-      h >= height ? padLine([], width, attrs.id) : content[h]
+      h >= height ? padLine([], width, attrs) : content[h]
     )
   );
 
@@ -196,6 +197,7 @@ export function renderML(
     }
   }, { x: 0, r: 0, blocks });
   if (blocks[0].length === 0) blocks.shift();
+
   return renderBlockColumn(
     layout.blocks.map((block) => renderBlockRow(block, attrs)),
     attrs,
@@ -210,12 +212,13 @@ export function renderScreen(ast: TML, state: State): Block {
     height,
     [],
   )
-    .map((line) => padLine(line, width));
+    .map((line) => padLine(line, width, BASE_ATTRIBUTES));
 
   state.top = clamp(0, state.top, content.length - height);
 
   screen.content = content.slice(state.top, height + state.top);
-  content[0][0].char = content[0][0].char.replace(/^/, esc(RESET_BG_COLOR));
+  //const sol = content[0][0];
+  //sol.char = esc(RESET_BG_COLOR) + sol.char;
 
   return screen;
 }
