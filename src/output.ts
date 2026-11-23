@@ -79,19 +79,11 @@ function redraw(state: State, exit: (msg: string) => void): void {
     if (result.ok) {
       if (result.value.remainder === "") {
         const screen = renderScreen(result.value.result, state);
-        const frame = screenToFrame(screen);
-
         //  this command can be embedded in the frame -- it doesn't need to be its own write
         cmd(HIDE_CURSOR, SET_CURSOR_POS_00);
-        Deno.writeTextFileSync("log/frame.txt", frame);
-        //Deno.writeTextFileSync(
-        //"log/ast.json",
-        //JSON.stringify(result.value.result, null, 2),
-        //);
-        //Deno.writeTextFileSync(
-        //"log/screen.json",
-        //JSON.stringify(screen, null, 2),
-        //);
+
+        const frame = screenToFrame(screen)
+
         process.stdout.write(frame);
 
         //const cursor = findCursor(screen);

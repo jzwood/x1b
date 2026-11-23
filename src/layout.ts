@@ -223,6 +223,7 @@ export function renderScreen(ast: TML, state: State): Block {
 }
 
 export function screenToFrame(screen: Block): string {
+  // find cursor can be rolled up into this, I think
   let frame = esc(RESET_BG_COLOR);
   let bgColor: RGB | null = null;
   for (const line of screen.content) {
@@ -236,5 +237,5 @@ export function screenToFrame(screen: Block): string {
     frame += "\n";
   }
 
-  return frame;
+  return frame.replace(/\n$/, '');
 }

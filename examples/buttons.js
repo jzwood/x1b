@@ -2,7 +2,7 @@ function nextFrame(id) {
   const border = (option, id) => option === id ? "solid" : "thin";
   return `<box bg-color="#cccccc">
       <box bg-color="#00ff00">
-        <box border="shaded" bg-color="#ff00ff">
+        <box border="double" bg-color="#ff00ff">
           <box id="a" bg-color="#94bfbe">OPTION A</box>
           <box> </box>
           <box id="b" bg-color="#61304b">OPTION B</box>
