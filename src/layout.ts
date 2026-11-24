@@ -12,7 +12,14 @@ import {
   sumBy,
 } from "./utils.ts";
 import { Attributes, BASE_ATTRIBUTES, BORDER_MAP } from "./attributes.ts";
-import { RESET_BG_COLOR, setBgColor } from "./escape_codes.ts";
+import {
+  HIDE_CURSOR,
+  moveCursorTo,
+  RESET_BG_COLOR,
+  SET_CURSOR_POS_00,
+  setBgColor,
+  SHOW_CURSOR,
+} from "./escape_codes.ts";
 import { State } from "./x1b.ts";
 
 interface Theme {
@@ -223,19 +230,26 @@ export function renderScreen(ast: TML, state: State): Block {
 }
 
 export function screenToFrame(screen: Block): string {
-  // find cursor can be rolled up into this, I think
-  let frame = esc(RESET_BG_COLOR);
+  let frame = esc(SET_CURSOR_POS_00) + esc(RESET_BG_COLOR);
   let bgColor: RGB | null = null;
-  for (const line of screen.content) {
-    for (const cell of line) {
+  let cursor = null;
+  const lastRow = screen.content.length - 1;
+  for (const [row, line] of Object.entries(screen.content)) {
+    for (const [col, cell] of Object.entries(line)) {
+      if (cursor == null && cell.id == TagName.Cursor) {
+        cursor = [+row + 1, +col + 1];
+      }
       if (!eqRGB(cell.bg, bgColor)) {
         bgColor = cell.bg;
         frame += esc(bgColor == null ? RESET_BG_COLOR : setBgColor(bgColor));
       }
       frame += cell.char;
     }
-    frame += "\n";
+    if (+row !== lastRow) frame += "\n";
   }
 
-  return frame.replace(/\n$/, '');
+  if (cursor == null) return esc(HIDE_CURSOR) + frame;
+
+  const [x, y] = cursor;
+  return frame + esc(SHOW_CURSOR) + esc(moveCursorTo(x, y));
 }

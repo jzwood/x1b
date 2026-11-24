@@ -61,35 +61,14 @@ export function requestDraw(
   }
 }
 
-function findCursor(content: Cell[][]): [number, number] | undefined {
-  for (let r = 0; r < content.length; r++) {
-    const row = content[r];
-    for (let c = 0; c < row.length; c++) {
-      const cell: Cell = row[c];
-      if (cell.id === TagName.Cursor) {
-        return [r + 1, c + 1];
-      }
-    }
-  }
-}
-
 function redraw(state: State, exit: (msg: string) => void): void {
   try {
     const result = parseML(state.frame, CURSOR);
     if (result.ok) {
       if (result.value.remainder === "") {
         const screen = renderScreen(result.value.result, state);
-        //  this command can be embedded in the frame -- it doesn't need to be its own write
-        cmd(HIDE_CURSOR, SET_CURSOR_POS_00);
-
-        const frame = screenToFrame(screen)
-
+        const frame = screenToFrame(screen);
         process.stdout.write(frame);
-
-        //const cursor = findCursor(screen);
-        //if (cursor) {
-        //cmd(SHOW_CURSOR, moveCursorTo(...cursor));
-        //}
       } else {
         const { row, col } = result.value.cursor;
         exit(

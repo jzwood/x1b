@@ -3,9 +3,13 @@ function nextFrame(id) {
   return `<box bg-color="#cccccc">
       <box bg-color="#00ff00">
         <box border="double" bg-color="#ff00ff">
-          <box id="a" bg-color="#94bfbe" border="${border("a", id)}">OPTION A</box>
+          <box id="a" bg-color="#94bfbe" border="${
+    border("a", id)
+  }">OPTION A</box>
           <box> </box>
-          <box id="b" bg-color="#61304b" border="${border("b", id)}">OPTION B</box>
+          <box id="b" bg-color="#61304b" border="${
+    border("b", id)
+  }">OPTION B</box>
         </box>
         <box> </box>
         <box id="c" bg-color="#acf7c1">OPTION C</box>
