@@ -3,7 +3,7 @@ function repeat(n, c) {
 }
 
 function frame(tick) {
-  return `<box>
+  return `<box border="shaded" bg-color="#aaaaaa">
   BIG FRUIT SALE${repeat((tick % 3) + 1, "!")}
   <box border="solid"><box>Abiu</box> <box>Açaí</box> <box>Acerola</box> <box>Akebi</box> <box>Ackee</box> <box>African</box> <box>Cherry</box> <box>Orange</box> <box>Apple</box> <box>Apricot</box> <box>Aratiles</box> <box>Araza</box> <box>Avocado</box> <box>Banana</box> <box>Bilberry</box> <box>Blackberry</box> <box>Blackcurrant</box> <box>Black</box> <box>sapote</box> <box>Blueberry</box> <box>Boysenberry</box> <box>Breadfruit</box> <box>Buddha's</box> <box>hand</box> <box>(fingeredcitron)</box> <box>Cactus</box> <box>pear</box></box>
   <button border="solid">Login</button>
