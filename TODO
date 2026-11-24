@@ -1,16 +1,16 @@
 WIP
-- automatically handle color scheme and nested bg-color layers from background to forground.
-  // Copy the strategy with parentId to handle background color (duh)
+- automatically handle color scheme
 
 NEXT
 - handle all styles (LARGE)
-  - handle nested bg-color
 - figure out popups
-  - will probably need a new frame layer.
-  - if we go full hog and manage multiple layers then consider adding drop-down menus
-- web view
-- handle box-level scrolling (MEDIUM)
+  - okay. with current strategy for bg-color I think this should be as simple as producing the screen then overwriting the section of the screen with the popup and then it'll just work. same deal with dropdown menus.
+- drop-down menus
+- web view (ok this could be fun)
+- add security layer -- how do you SSH into it? How do you securely view from browser?
+- handle box-level scrolling
 - config file
+  - which format? .env, .toml, environement vars?
   - indicate log file for debug writes
     - they can can always write to a file on their end and tail it with less
     - maybe there's a debug flag which sends 'DEBUG:' data to their app they can log however they want
@@ -29,3 +29,4 @@ DONE
 - handle min/max width/height
 - handle vertical overflow (MEDIUM)
   - handle scrolling (mouse wheel? scroll bar? both?) ehh only did scroll wheel
+- handle nested bg-color
